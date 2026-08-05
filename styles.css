@@ -1,0 +1,1222 @@
+/* ========== POP ART MAHJONG JOKER ========== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+:root {
+  --pop-yellow: #FFDE00;
+  --pop-red: #FF3B30;
+  --pop-green: #4CD964;
+  --pop-blue: #007AFF;
+  --pop-ink: #000000;
+  --pop-surface: #FFFFFF;
+  --pop-surface-warm: #FFF9C4;
+  --pop-button-yellow: #FFCC00;
+  --pop-easing: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Noto Sans SC', system-ui, sans-serif;
+  font-weight: 900;
+  background: var(--pop-yellow);
+}
+
+body {
+  position: relative;
+}
+
+/* Ben-Day dots 半色调纹理 */
+.halftone-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: radial-gradient(rgba(0,0,0,0.12) 2px, transparent 2px);
+  background-size: 16px 16px;
+}
+
+.pop-font {
+  font-family: 'Bangers', 'Noto Sans SC', cursive;
+  letter-spacing: 0.02em;
+}
+
+/* ========== 游戏容器 ========== */
+.game-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* ========== 顶部状态栏 ========== */
+.top-bar {
+  background: var(--pop-ink);
+  color: var(--pop-surface);
+  padding: 8px 12px 10px;
+  border-radius: 0 0 1.5rem 1.5rem;
+  border: 4px solid var(--pop-ink);
+  border-top: none;
+  box-shadow: 0 3px 0 0 var(--pop-ink);
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.back-home-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--pop-surface);
+  color: var(--pop-ink);
+  border: 3px solid var(--pop-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 0;
+  transition: transform 0.1s;
+}
+
+.back-home-btn:hover {
+  transform: scale(1.08);
+}
+
+.back-home-btn:active {
+  transform: scale(0.95);
+}
+
+.sound-toggle-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--pop-surface);
+  color: var(--pop-ink);
+  border: 3px solid var(--pop-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 0;
+  transition: transform 0.1s;
+}
+
+.sound-toggle-btn:hover {
+  transform: scale(1.08);
+}
+
+.sound-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.top-bar-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  border: 3px solid var(--pop-ink);
+  background: var(--pop-surface);
+  color: var(--pop-ink);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: 2px 2px 0 0 var(--pop-ink);
+}
+
+.stat-pill .stat-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-pill .stat-value {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.stat-pill.yellow { background: var(--pop-yellow); }
+.stat-pill.red { background: var(--pop-red); color: white; border-color: var(--pop-ink); }
+.stat-pill.green { background: var(--pop-green); }
+.stat-pill.blue { background: var(--pop-blue); color: white; }
+.stat-pill.white { background: white; }
+
+.game-title {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin: 4px 0 2px;
+  color: var(--pop-yellow);
+  text-shadow: 2px 2px 0 var(--pop-red);
+  transform: rotate(-1deg);
+}
+
+.game-subtitle {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+.blind-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.blind-track {
+  flex: 1;
+  height: 24px;
+  background: #1a1a1a;
+  border-radius: 9999px;
+  border: 3px solid var(--pop-ink);
+  position: relative;
+  overflow: hidden;
+}
+
+.blind-fill {
+  height: 100%;
+  background: var(--pop-green);
+  border-radius: 9999px;
+  transition: width 0.3s var(--pop-easing);
+}
+
+.blind-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: white;
+  white-space: nowrap;
+}
+
+/* ========== 主游戏区 ========== */
+.game-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 12px 8px;
+  gap: 8px;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* 小丑牌区 */
+.jokers-section {
+  min-height: 90px;
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--pop-ink);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.section-label::before,
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 3px;
+  background: var(--pop-ink);
+  opacity: 0.3;
+}
+
+.jokers-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.jokers-row::-webkit-scrollbar {
+  display: none;
+}
+
+.joker-slot {
+  flex-shrink: 0;
+  width: 72px;
+  height: 88px;
+  border: 3px dashed var(--pop-ink);
+  border-radius: 12px;
+  opacity: 0.4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+/* 小丑牌卡片 */
+.joker-card {
+  flex-shrink: 0;
+  width: 72px;
+  height: 88px;
+  background: var(--pop-surface);
+  border: 4px solid var(--pop-ink);
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 0 var(--pop-ink);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: transform 0.15s var(--pop-easing);
+  cursor: pointer;
+  position: relative;
+}
+
+.joker-card:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 0 var(--pop-ink);
+}
+
+.joker-emoji {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.joker-name {
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+  line-height: 1.1;
+  color: var(--pop-ink);
+}
+
+.joker-effect {
+  font-size: 7px;
+  text-align: center;
+  color: var(--pop-ink);
+  opacity: 0.7;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.joker-rarity {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid var(--pop-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 900;
+  box-shadow: 1px 1px 0 0 var(--pop-ink);
+}
+
+.joker-rarity.common { background: white; }
+.joker-rarity.uncommon { background: var(--pop-green); color: black; }
+.joker-rarity.rare { background: var(--pop-blue); color: white; }
+.joker-rarity.legendary { background: var(--pop-red); color: white; }
+
+/* ========== 出牌区 ========== */
+.play-area {
+  background: var(--pop-surface-warm);
+  border: 4px solid var(--pop-ink);
+  border-radius: 1.5rem;
+  padding: 12px;
+  box-shadow: 6px 6px 0 0 var(--pop-ink);
+  position: relative;
+  min-height: 140px;
+}
+
+.play-area-title {
+  position: absolute;
+  top: -12px;
+  left: 16px;
+  background: var(--pop-red);
+  color: white;
+  padding: 2px 12px;
+  border: 3px solid var(--pop-ink);
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  box-shadow: 2px 2px 0 0 var(--pop-ink);
+}
+
+.play-tiles {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  min-height: 110px;
+  flex-wrap: wrap;
+}
+
+.hand-type-result {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  background: var(--pop-ink);
+  color: var(--pop-yellow);
+  padding: 6px 18px 6px 16px;
+  border-radius: 9999px;
+  border: 3px solid var(--pop-ink);
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  box-shadow: 4px 4px 0 0 var(--pop-red);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: typePop 0.25s ease-out;
+}
+
+@keyframes typePop {
+  from { transform: translateX(-50%) scale(0.8) rotate(-2deg); opacity: 0; }
+  to   { transform: translateX(-50%) scale(1) rotate(-2deg); opacity: 1; }
+}
+
+.hand-type-result.no-type {
+  background: var(--pop-surface-warm);
+  color: var(--pop-ink);
+  box-shadow: 3px 3px 0 0 rgba(0,0,0,0.2);
+  border-color: var(--pop-ink);
+}
+
+.hand-type-result .ht-name {
+  font-weight: 900;
+}
+
+.hand-type-result .ht-count {
+  font-size: 10px;
+  background: rgba(255,255,255,0.15);
+  padding: 2px 6px;
+  border-radius: 9999px;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.hand-type-result .score-pop {
+  color: var(--pop-green);
+  margin-left: 4px;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.hand-type-result.no-type .score-pop {
+  color: var(--pop-green-dark);
+}
+
+/* ========== 手牌区 ========== */
+.hand-section {
+  margin-top: auto;
+  padding: 8px 8px 4px;
+}
+
+.hand-tiles {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ========== 麻将牌 ========== */
+.mahjong-tile {
+  width: 48px;
+  height: 64px;
+  background: var(--pop-surface);
+  border: 3px solid var(--pop-ink);
+  border-radius: 8px;
+  box-shadow: 3px 3px 0 0 var(--pop-ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s var(--pop-easing), box-shadow 0.15s var(--pop-easing);
+  position: relative;
+  overflow: hidden;
+}
+
+.mahjong-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px);
+  background-size: 8px 8px;
+  pointer-events: none;
+}
+
+.mahjong-tile.selected {
+  transform: translateY(-12px);
+  box-shadow: 4px 14px 0 0 var(--pop-ink), 0 0 0 3px var(--pop-red) inset;
+  border-color: var(--pop-ink);
+  background: var(--pop-surface);
+}
+
+.mahjong-tile.in-play {
+  transform: scale(1.05);
+}
+
+.tile-value {
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--pop-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.tile-suit {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 2px;
+}
+
+.tile-suit.wan { color: var(--pop-red); }
+.tile-suit.tiao { color: var(--pop-green); }
+.tile-suit.tong { color: var(--pop-blue); }
+.tile-suit.feng { color: var(--pop-ink); }
+.tile-suit.jian { color: var(--pop-ink); }
+
+.tile-wan .tile-value { color: var(--pop-red); }
+.tile-tiao .tile-value { color: var(--pop-green); }
+.tile-tong .tile-value { color: var(--pop-blue); }
+.tile-feng .tile-value { color: var(--pop-ink); font-size: 20px; font-family: 'ZCOOL KuaiLe', 'Noto Sans SC', sans-serif; font-weight: 400; }
+.tile-jian .tile-value { color: var(--pop-ink); font-size: 20px; font-family: 'ZCOOL KuaiLe', 'Noto Sans SC', sans-serif; font-weight: 400; }
+
+.tile-small {
+  width: 36px;
+  height: 48px;
+}
+.tile-small .tile-value { font-size: 16px; }
+.tile-small .tile-suit { font-size: 7px; }
+.tile-small.tile-feng .tile-value,
+.tile-small.tile-jian .tile-value { font-size: 14px; color: var(--pop-ink); font-family: 'ZCOOL KuaiLe', 'Noto Sans SC', sans-serif; font-weight: 400; }
+
+/* ========== 操作按钮区 ========== */
+.action-bar {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px 16px;
+  background: transparent;
+}
+
+.pop-btn {
+  flex: 1;
+  padding: 14px 8px;
+  border: 4px solid var(--pop-ink);
+  border-radius: 9999px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 0 var(--pop-ink);
+  transition: all 0.1s var(--pop-easing);
+  position: relative;
+}
+
+.pop-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 0 var(--pop-ink);
+}
+
+.pop-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pop-btn.yellow { background: var(--pop-button-yellow); color: var(--pop-ink); }
+.pop-btn.red { background: var(--pop-red); color: white; }
+.pop-btn.green { background: var(--pop-green); color: var(--pop-ink); }
+.pop-btn.blue { background: var(--pop-blue); color: white; }
+.pop-btn.purple { background: #9b51e0; color: white; }
+.pop-btn.purple.active {
+  background: var(--pop-ink);
+  color: var(--pop-yellow);
+  border-color: var(--pop-yellow);
+  box-shadow: 0 0 0 3px var(--pop-yellow);
+}
+.pop-btn.black { background: var(--pop-ink); color: white; }
+.pop-btn.white { background: white; color: var(--pop-ink); }
+
+.btn-small {
+  padding: 10px 16px;
+  font-size: 11px;
+  flex: none;
+}
+
+/* ========== 商店界面 ========== */
+.shop-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.shop-container {
+  background: var(--pop-surface);
+  border: 6px solid var(--pop-ink);
+  border-radius: 2rem;
+  box-shadow: 12px 12px 0 0 var(--pop-button-yellow);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: popIn 0.3s var(--pop-easing);
+  max-width: 480px;
+  margin: auto;
+  width: 100%;
+  max-height: 90vh;
+}
+
+.shop-container.confirm-box {
+  flex: unset;
+  max-width: 360px;
+  max-height: unset;
+  box-shadow: 8px 8px 0 0 var(--pop-button-yellow);
+  border-radius: 1.5rem;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.8) rotate(-5deg); opacity: 0; }
+  to { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.shop-header {
+  background: var(--pop-ink);
+  color: var(--pop-yellow);
+  padding: 16px 20px;
+  text-align: center;
+  position: relative;
+}
+
+.shop-title {
+  font-family: 'Bangers', cursive;
+  font-size: 28px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: 3px 3px 0 var(--pop-red);
+  transform: rotate(-1deg);
+}
+
+.shop-close {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--pop-ink);
+  background: var(--pop-red);
+  color: white;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 0 0 rgba(255,255,255,0.3);
+}
+
+.shop-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 4px solid var(--pop-ink);
+}
+
+.shop-tab {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  border-bottom: 4px solid transparent;
+  margin-bottom: -4px;
+  transition: all 0.15s;
+}
+
+.shop-tab.active {
+  background: var(--pop-yellow);
+  border-bottom-color: var(--pop-ink);
+}
+
+.shop-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.shop-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--pop-surface-warm);
+  border: 4px solid var(--pop-ink);
+  border-radius: 1rem;
+  box-shadow: 4px 4px 0 0 var(--pop-ink);
+  margin-bottom: 10px;
+}
+
+.shop-item-icon {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  background: white;
+  border: 3px solid var(--pop-ink);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.shop-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.shop-item-name {
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.shop-item-desc {
+  font-size: 10px;
+  color: var(--pop-ink);
+  opacity: 0.7;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.shop-item-buy {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  background: var(--pop-green);
+  border: 3px solid var(--pop-ink);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 0 var(--pop-ink);
+  transition: all 0.1s var(--pop-easing);
+  white-space: nowrap;
+}
+
+.shop-item-buy:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 0 var(--pop-ink);
+}
+
+.shop-item-buy:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #ccc;
+}
+
+.shop-footer {
+  padding: 12px 16px;
+  border-top: 4px solid var(--pop-ink);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ========== 开始/结算界面 ========== */
+.screen-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--pop-yellow);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.screen-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(0,0,0,0.1) 2px, transparent 2px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+.screen-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  width: 100%;
+  max-width: 360px;
+}
+
+.screen-big-title {
+  font-family: 'Bangers', cursive;
+  font-size: 52px;
+  font-weight: 400;
+  text-transform: uppercase;
+  line-height: 0.95;
+  color: var(--pop-ink);
+  text-shadow: 4px 4px 0 var(--pop-red), 8px 8px 0 var(--pop-ink);
+  margin-bottom: 16px;
+  transform: rotate(-2deg);
+}
+
+.screen-big-title .accent {
+  color: var(--pop-red);
+  display: block;
+  transform: rotate(1deg);
+}
+
+.screen-subtitle {
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--pop-ink);
+  margin-bottom: 32px;
+  opacity: 0.8;
+}
+
+.screen-btn {
+  display: block;
+  width: 100%;
+  padding: 18px;
+  margin-bottom: 12px;
+  border: 5px solid var(--pop-ink);
+  border-radius: 9999px;
+  font-size: 16px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  box-shadow: 6px 6px 0 0 var(--pop-ink);
+  transition: all 0.1s var(--pop-easing);
+}
+
+.screen-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 3px 3px 0 0 var(--pop-ink);
+}
+
+.screen-btn.green { background: var(--pop-green); }
+.screen-btn.red { background: var(--pop-red); color: white; }
+.screen-btn.blue { background: var(--pop-blue); color: white; }
+
+/* 结算统计 */
+.result-stats {
+  background: white;
+  border: 5px solid var(--pop-ink);
+  border-radius: 1.5rem;
+  padding: 20px;
+  box-shadow: 8px 8px 0 0 var(--pop-ink);
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.result-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 3px dashed rgba(0,0,0,0.15);
+}
+
+.result-stat:last-child {
+  border-bottom: none;
+}
+
+.result-stat-label {
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+}
+
+.result-stat-value {
+  font-family: 'Bangers', cursive;
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--pop-red);
+}
+
+/* ========== 浮动提示 ========== */
+.float-toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--pop-ink);
+  color: var(--pop-yellow);
+  padding: 10px 20px;
+  border: 4px solid var(--pop-ink);
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  z-index: 300;
+  box-shadow: 4px 4px 0 0 var(--pop-red);
+  animation: toastIn 0.3s var(--pop-easing);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+@keyframes toastIn {
+  from { transform: translate(-50%, -20px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+/* ========== 得分弹出 ========== */
+.score-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Bangers', cursive;
+  font-size: 48px;
+  color: var(--pop-green);
+  text-shadow: 3px 3px 0 var(--pop-ink);
+  pointer-events: none;
+  animation: scorePop 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  z-index: 5;
+}
+
+@keyframes scorePop {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+  65% { transform: translate(-50%, -50%) scale(0.95); opacity: 1; }
+  80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+}
+
+@keyframes scoreCardPop {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  60% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+  80% { transform: translate(-50%, -50%) scale(0.97); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+/* ========== 牌型得分详情 ========== */
+.score-breakdown {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border: 5px solid var(--pop-ink);
+  border-radius: 1.5rem;
+  padding: 16px 20px;
+  box-shadow: 8px 8px 0 0 var(--pop-button-yellow);
+  z-index: 10;
+  min-width: 200px;
+  animation: scoreCardPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.score-breakdown-title {
+  font-family: 'Bangers', cursive;
+  font-size: 20px;
+  text-align: center;
+  color: var(--pop-red);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.score-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 0;
+  border-bottom: 2px dashed rgba(0,0,0,0.1);
+}
+
+.score-breakdown-row:last-child {
+  border-bottom: none;
+  padding-top: 8px;
+  font-size: 14px;
+  color: var(--pop-green);
+}
+
+.score-breakdown-row .label {
+  opacity: 0.7;
+}
+
+/* ========== 盲注结算 ========== */
+.blind-result {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.blind-result-card {
+  background: var(--pop-surface);
+  border: 6px solid var(--pop-ink);
+  border-radius: 2rem;
+  box-shadow: 12px 12px 0 0 var(--pop-button-yellow);
+  padding: 24px;
+  text-align: center;
+  width: 100%;
+  max-width: 340px;
+  animation: popIn 0.35s var(--pop-easing);
+}
+
+.blind-result-title {
+  font-family: 'Bangers', cursive;
+  font-size: 36px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.blind-result-title.win { color: var(--pop-green); text-shadow: 3px 3px 0 var(--pop-ink); }
+.blind-result-title.lose { color: var(--pop-red); text-shadow: 3px 3px 0 var(--pop-ink); }
+
+.blind-result-sub {
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  opacity: 0.7;
+  margin-bottom: 16px;
+}
+
+.blind-result-score {
+  background: var(--pop-surface-warm);
+  border: 4px solid var(--pop-ink);
+  border-radius: 1rem;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.blind-result-score-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 0;
+}
+
+.blind-result-score-row .val {
+  color: var(--pop-red);
+  font-family: 'Bangers', cursive;
+  font-size: 16px;
+}
+
+/* ========== 底部 Tab 导航 ========== */
+.bottom-nav {
+  display: flex;
+  border-top: 4px solid var(--pop-ink);
+  background: var(--pop-ink);
+  padding: 4px;
+  gap: 4px;
+}
+
+.bottom-nav-item {
+  flex: 1;
+  padding: 8px 4px;
+  text-align: center;
+  border-radius: 12px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.bottom-nav-item.active {
+  background: var(--pop-yellow);
+  color: var(--pop-ink);
+}
+
+.bottom-nav-icon {
+  font-size: 18px;
+}
+
+/* ========== 帮助/说明面板 ========== */
+.help-panel {
+  background: white;
+  border: 4px solid var(--pop-ink);
+  border-radius: 1rem;
+  padding: 12px;
+  box-shadow: 4px 4px 0 0 var(--pop-ink);
+  margin-bottom: 10px;
+}
+
+.help-title {
+  font-family: 'Bangers', cursive;
+  font-size: 18px;
+  text-transform: uppercase;
+  color: var(--pop-red);
+  margin-bottom: 8px;
+}
+
+.help-text {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--pop-ink);
+  opacity: 0.85;
+}
+
+.hand-rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hand-rank-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: var(--pop-surface-warm);
+  border: 3px solid var(--pop-ink);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.hand-rank-item.expanded {
+  border-radius: 8px 8px 0 0;
+  box-shadow: 3px 0 0 0 var(--pop-ink);
+}
+
+.hand-rank-item .rank-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.hand-rank-item .rank-num {
+  font-family: 'Bangers', cursive;
+  font-size: 14px;
+  color: var(--pop-red);
+  min-width: 24px;
+}
+
+.hand-rank-item .rank-mult {
+  color: var(--pop-green);
+  font-family: 'Bangers', cursive;
+  font-size: 14px;
+}
+
+/* ========== 抖动动画 ========== */
+@keyframes handExpand {
+  from { transform: scaleY(0); opacity: 0; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+/* 出牌区得分动画 */
+.play-area.scoring {
+  border-color: var(--pop-green);
+  box-shadow: 6px 6px 0 0 var(--pop-green);
+}

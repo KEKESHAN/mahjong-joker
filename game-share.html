@@ -1,0 +1,4416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MAHJONG JOKER · 麻将小丑牌</title>
+  <link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Bangers&family=Noto+Sans+SC:wght@400;700;900&family=ZCOOL+KuaiLe&display=swap" />
+  <script src="https://sf3-scmcdn-cn.feishucdn.com/obj/feishu-static/miaoda/coding-unpkg-sdk/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+  <script src="https://sf3-scmcdn-cn.feishucdn.com/obj/feishu-static/miaoda/coding-unpkg-sdk/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+  <script src="https://sf3-scmcdn-cn.feishucdn.com/obj/feishu-static/miaoda/coding-unpkg-sdk/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+  <style>
+/* ========== POP ART MAHJONG JOKER ========== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+:root {
+  --pop-yellow: #FFDE00;
+  --pop-red: #FF3B30;
+  --pop-green: #4CD964;
+  --pop-blue: #007AFF;
+  --pop-ink: #000000;
+  --pop-surface: #FFFFFF;
+  --pop-surface-warm: #FFF9C4;
+  --pop-button-yellow: #FFCC00;
+  --pop-easing: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Noto Sans SC', system-ui, sans-serif;
+  font-weight: 900;
+  background: var(--pop-yellow);
+}
+
+body {
+  position: relative;
+}
+
+/* Ben-Day dots 半色调纹理 */
+.halftone-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: radial-gradient(rgba(0,0,0,0.12) 2px, transparent 2px);
+  background-size: 16px 16px;
+}
+
+.pop-font {
+  font-family: 'Bangers', 'Noto Sans SC', cursive;
+  letter-spacing: 0.02em;
+}
+
+/* ========== 游戏容器 ========== */
+.game-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* ========== 顶部状态栏 ========== */
+.top-bar {
+  background: var(--pop-ink);
+  color: var(--pop-surface);
+  padding: 8px 12px 10px;
+  border-radius: 0 0 1.5rem 1.5rem;
+  border: 4px solid var(--pop-ink);
+  border-top: none;
+  box-shadow: 0 3px 0 0 var(--pop-ink);
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.back-home-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--pop-surface);
+  color: var(--pop-ink);
+  border: 3px solid var(--pop-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 0;
+  transition: transform 0.1s;
+}
+
+.back-home-btn:hover {
+  transform: scale(1.08);
+}
+
+.back-home-btn:active {
+  transform: scale(0.95);
+}
+
+.sound-toggle-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--pop-surface);
+  color: var(--pop-ink);
+  border: 3px solid var(--pop-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 0;
+  transition: transform 0.1s;
+}
+
+.sound-toggle-btn:hover {
+  transform: scale(1.08);
+}
+
+.sound-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.top-bar-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  border: 3px solid var(--pop-ink);
+  background: var(--pop-surface);
+  color: var(--pop-ink);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: 2px 2px 0 0 var(--pop-ink);
+}
+
+.stat-pill .stat-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-pill .stat-value {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.stat-pill.yellow { background: var(--pop-yellow); }
+.stat-pill.red { background: var(--pop-red); color: white; border-color: var(--pop-ink); }
+.stat-pill.green { background: var(--pop-green); }
+.stat-pill.blue { background: var(--pop-blue); color: white; }
+.stat-pill.white { background: white; }
+
+.game-title {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin: 4px 0 2px;
+  color: var(--pop-yellow);
+  text-shadow: 2px 2px 0 var(--pop-red);
+  transform: rotate(-1deg);
+}
+
+.game-subtitle {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+.blind-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.blind-track {
+  flex: 1;
+  height: 24px;
+  background: #1a1a1a;
+  border-radius: 9999px;
+  border: 3px solid var(--pop-ink);
+  position: relative;
+  overflow: hidden;
+}
+
+.blind-fill {
+  height: 100%;
+  background: var(--pop-green);
+  border-radius: 9999px;
+  transition: width 0.3s var(--pop-easing);
+}
+
+.blind-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: white;
+  white-space: nowrap;
+}
+
+/* ========== 主游戏区 ========== */
+.game-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 12px 8px;
+  gap: 8px;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* 小丑牌区 */
+.jokers-section {
+  min-height: 90px;
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--pop-ink);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.section-label::before,
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 3px;
+  background: var(--pop-ink);
+  opacity: 0.3;
+}
+
+.jokers-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.jokers-row::-webkit-scrollbar {
+  display: none;
+}
+
+.joker-slot {
+  flex-shrink: 0;
+  width: 72px;
+  height: 88px;
+  border: 3px dashed var(--pop-ink);
+  border-radius: 12px;
+  opacity: 0.4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+/* 小丑牌卡片 */
+.joker-card {
+  flex-shrink: 0;
+  width: 72px;
+  height: 88px;
+  background: var(--pop-surface);
+  border: 4px solid var(--pop-ink);
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 0 var(--pop-ink);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: transform 0.15s var(--pop-easing);
+  cursor: pointer;
+  position: relative;
+}
+
+.joker-card:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 0 var(--pop-ink);
+}
+
+.joker-emoji {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.joker-name {
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+  line-height: 1.1;
+  color: var(--pop-ink);
+}
+
+.joker-effect {
+  font-size: 7px;
+  text-align: center;
+  color: var(--pop-ink);
+  opacity: 0.7;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.joker-rarity {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid var(--pop-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 900;
+  box-shadow: 1px 1px 0 0 var(--pop-ink);
+}
+
+.joker-rarity.common { background: white; }
+.joker-rarity.uncommon { background: var(--pop-green); color: black; }
+.joker-rarity.rare { background: var(--pop-blue); color: white; }
+.joker-rarity.legendary { background: var(--pop-red); color: white; }
+
+/* ========== 出牌区 ========== */
+.play-area {
+  background: var(--pop-surface-warm);
+  border: 4px solid var(--pop-ink);
+  border-radius: 1.5rem;
+  padding: 12px;
+  box-shadow: 6px 6px 0 0 var(--pop-ink);
+  position: relative;
+  min-height: 140px;
+}
+
+.play-area-title {
+  position: absolute;
+  top: -12px;
+  left: 16px;
+  background: var(--pop-red);
+  color: white;
+  padding: 2px 12px;
+  border: 3px solid var(--pop-ink);
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  box-shadow: 2px 2px 0 0 var(--pop-ink);
+}
+
+.play-tiles {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  min-height: 110px;
+  flex-wrap: wrap;
+}
+
+.hand-type-result {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  background: var(--pop-ink);
+  color: var(--pop-yellow);
+  padding: 6px 18px 6px 16px;
+  border-radius: 9999px;
+  border: 3px solid var(--pop-ink);
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  box-shadow: 4px 4px 0 0 var(--pop-red);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: typePop 0.25s ease-out;
+}
+
+@keyframes typePop {
+  from { transform: translateX(-50%) scale(0.8) rotate(-2deg); opacity: 0; }
+  to   { transform: translateX(-50%) scale(1) rotate(-2deg); opacity: 1; }
+}
+
+.hand-type-result.no-type {
+  background: var(--pop-surface-warm);
+  color: var(--pop-ink);
+  box-shadow: 3px 3px 0 0 rgba(0,0,0,0.2);
+  border-color: var(--pop-ink);
+}
+
+.hand-type-result .ht-name {
+  font-weight: 900;
+}
+
+.hand-type-result .ht-count {
+  font-size: 10px;
+  background: rgba(255,255,255,0.15);
+  padding: 2px 6px;
+  border-radius: 9999px;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.hand-type-result .score-pop {
+  color: var(--pop-green);
+  margin-left: 4px;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.hand-type-result.no-type .score-pop {
+  color: var(--pop-green-dark);
+}
+
+/* ========== 手牌区 ========== */
+.hand-section {
+  margin-top: auto;
+  padding: 8px 8px 4px;
+}
+
+.hand-tiles {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* ========== 麻将牌 ========== */
+.mahjong-tile {
+  width: 48px;
+  height: 64px;
+  background: var(--pop-surface);
+  border: 3px solid var(--pop-ink);
+  border-radius: 8px;
+  box-shadow: 3px 3px 0 0 var(--pop-ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s var(--pop-easing), box-shadow 0.15s var(--pop-easing);
+  position: relative;
+  overflow: hidden;
+}
+
+.mahjong-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px);
+  background-size: 8px 8px;
+  pointer-events: none;
+}
+
+.mahjong-tile.selected {
+  transform: translateY(-12px);
+  box-shadow: 4px 14px 0 0 var(--pop-ink), 0 0 0 3px var(--pop-red) inset;
+  border-color: var(--pop-ink);
+  background: var(--pop-surface);
+}
+
+.mahjong-tile.in-play {
+  transform: scale(1.05);
+}
+
+.tile-value {
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--pop-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.tile-suit {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 2px;
+}
+
+.tile-suit.wan { color: var(--pop-red); }
+.tile-suit.tiao { color: var(--pop-green); }
+.tile-suit.tong { color: var(--pop-blue); }
+.tile-suit.feng { color: var(--pop-ink); }
+.tile-suit.jian { color: var(--pop-ink); }
+
+.tile-wan .tile-value { color: var(--pop-red); }
+.tile-tiao .tile-value { color: var(--pop-green); }
+.tile-tong .tile-value { color: var(--pop-blue); }
+.tile-feng .tile-value { color: var(--pop-ink); font-size: 20px; font-family: 'ZCOOL KuaiLe', 'Noto Sans SC', sans-serif; font-weight: 400; }
+.tile-jian .tile-value { color: var(--pop-ink); font-size: 20px; font-family: 'ZCOOL KuaiLe', 'Noto Sans SC', sans-serif; font-weight: 400; }
+
+.tile-small {
+  width: 36px;
+  height: 48px;
+}
+.tile-small .tile-value { font-size: 16px; }
+.tile-small .tile-suit { font-size: 7px; }
+.tile-small.tile-feng .tile-value,
+.tile-small.tile-jian .tile-value { font-size: 14px; color: var(--pop-ink); font-family: 'ZCOOL KuaiLe', 'Noto Sans SC', sans-serif; font-weight: 400; }
+
+/* ========== 操作按钮区 ========== */
+.action-bar {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px 16px;
+  background: transparent;
+}
+
+.pop-btn {
+  flex: 1;
+  padding: 14px 8px;
+  border: 4px solid var(--pop-ink);
+  border-radius: 9999px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 0 var(--pop-ink);
+  transition: all 0.1s var(--pop-easing);
+  position: relative;
+}
+
+.pop-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 0 var(--pop-ink);
+}
+
+.pop-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pop-btn.yellow { background: var(--pop-button-yellow); color: var(--pop-ink); }
+.pop-btn.red { background: var(--pop-red); color: white; }
+.pop-btn.green { background: var(--pop-green); color: var(--pop-ink); }
+.pop-btn.blue { background: var(--pop-blue); color: white; }
+.pop-btn.purple { background: #9b51e0; color: white; }
+.pop-btn.purple.active {
+  background: var(--pop-ink);
+  color: var(--pop-yellow);
+  border-color: var(--pop-yellow);
+  box-shadow: 0 0 0 3px var(--pop-yellow);
+}
+.pop-btn.black { background: var(--pop-ink); color: white; }
+.pop-btn.white { background: white; color: var(--pop-ink); }
+
+.btn-small {
+  padding: 10px 16px;
+  font-size: 11px;
+  flex: none;
+}
+
+/* ========== 商店界面 ========== */
+.shop-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.shop-container {
+  background: var(--pop-surface);
+  border: 6px solid var(--pop-ink);
+  border-radius: 2rem;
+  box-shadow: 12px 12px 0 0 var(--pop-button-yellow);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: popIn 0.3s var(--pop-easing);
+  max-width: 480px;
+  margin: auto;
+  width: 100%;
+  max-height: 90vh;
+}
+
+.shop-container.confirm-box {
+  flex: unset;
+  max-width: 360px;
+  max-height: unset;
+  box-shadow: 8px 8px 0 0 var(--pop-button-yellow);
+  border-radius: 1.5rem;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.8) rotate(-5deg); opacity: 0; }
+  to { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.shop-header {
+  background: var(--pop-ink);
+  color: var(--pop-yellow);
+  padding: 16px 20px;
+  text-align: center;
+  position: relative;
+}
+
+.shop-title {
+  font-family: 'Bangers', cursive;
+  font-size: 28px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: 3px 3px 0 var(--pop-red);
+  transform: rotate(-1deg);
+}
+
+.shop-close {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--pop-ink);
+  background: var(--pop-red);
+  color: white;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 0 0 rgba(255,255,255,0.3);
+}
+
+.shop-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 4px solid var(--pop-ink);
+}
+
+.shop-tab {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  border-bottom: 4px solid transparent;
+  margin-bottom: -4px;
+  transition: all 0.15s;
+}
+
+.shop-tab.active {
+  background: var(--pop-yellow);
+  border-bottom-color: var(--pop-ink);
+}
+
+.shop-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.shop-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--pop-surface-warm);
+  border: 4px solid var(--pop-ink);
+  border-radius: 1rem;
+  box-shadow: 4px 4px 0 0 var(--pop-ink);
+  margin-bottom: 10px;
+}
+
+.shop-item-icon {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  background: white;
+  border: 3px solid var(--pop-ink);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.shop-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.shop-item-name {
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.shop-item-desc {
+  font-size: 10px;
+  color: var(--pop-ink);
+  opacity: 0.7;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.shop-item-buy {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  background: var(--pop-green);
+  border: 3px solid var(--pop-ink);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 0 var(--pop-ink);
+  transition: all 0.1s var(--pop-easing);
+  white-space: nowrap;
+}
+
+.shop-item-buy:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 0 var(--pop-ink);
+}
+
+.shop-item-buy:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #ccc;
+}
+
+.shop-footer {
+  padding: 12px 16px;
+  border-top: 4px solid var(--pop-ink);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ========== 开始/结算界面 ========== */
+.screen-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--pop-yellow);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.screen-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(0,0,0,0.1) 2px, transparent 2px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+.screen-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  width: 100%;
+  max-width: 360px;
+}
+
+.screen-big-title {
+  font-family: 'Bangers', cursive;
+  font-size: 52px;
+  font-weight: 400;
+  text-transform: uppercase;
+  line-height: 0.95;
+  color: var(--pop-ink);
+  text-shadow: 4px 4px 0 var(--pop-red), 8px 8px 0 var(--pop-ink);
+  margin-bottom: 16px;
+  transform: rotate(-2deg);
+}
+
+.screen-big-title .accent {
+  color: var(--pop-red);
+  display: block;
+  transform: rotate(1deg);
+}
+
+.screen-subtitle {
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--pop-ink);
+  margin-bottom: 32px;
+  opacity: 0.8;
+}
+
+.screen-btn {
+  display: block;
+  width: 100%;
+  padding: 18px;
+  margin-bottom: 12px;
+  border: 5px solid var(--pop-ink);
+  border-radius: 9999px;
+  font-size: 16px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  box-shadow: 6px 6px 0 0 var(--pop-ink);
+  transition: all 0.1s var(--pop-easing);
+}
+
+.screen-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 3px 3px 0 0 var(--pop-ink);
+}
+
+.screen-btn.green { background: var(--pop-green); }
+.screen-btn.red { background: var(--pop-red); color: white; }
+.screen-btn.blue { background: var(--pop-blue); color: white; }
+
+/* 结算统计 */
+.result-stats {
+  background: white;
+  border: 5px solid var(--pop-ink);
+  border-radius: 1.5rem;
+  padding: 20px;
+  box-shadow: 8px 8px 0 0 var(--pop-ink);
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.result-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 3px dashed rgba(0,0,0,0.15);
+}
+
+.result-stat:last-child {
+  border-bottom: none;
+}
+
+.result-stat-label {
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+}
+
+.result-stat-value {
+  font-family: 'Bangers', cursive;
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--pop-red);
+}
+
+/* ========== 浮动提示 ========== */
+.float-toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--pop-ink);
+  color: var(--pop-yellow);
+  padding: 10px 20px;
+  border: 4px solid var(--pop-ink);
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  z-index: 300;
+  box-shadow: 4px 4px 0 0 var(--pop-red);
+  animation: toastIn 0.3s var(--pop-easing);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+@keyframes toastIn {
+  from { transform: translate(-50%, -20px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+/* ========== 得分弹出 ========== */
+.score-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Bangers', cursive;
+  font-size: 48px;
+  color: var(--pop-green);
+  text-shadow: 3px 3px 0 var(--pop-ink);
+  pointer-events: none;
+  animation: scorePop 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  z-index: 5;
+}
+
+@keyframes scorePop {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+  65% { transform: translate(-50%, -50%) scale(0.95); opacity: 1; }
+  80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+}
+
+@keyframes scoreCardPop {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  60% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+  80% { transform: translate(-50%, -50%) scale(0.97); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+/* ========== 牌型得分详情 ========== */
+.score-breakdown {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border: 5px solid var(--pop-ink);
+  border-radius: 1.5rem;
+  padding: 16px 20px;
+  box-shadow: 8px 8px 0 0 var(--pop-button-yellow);
+  z-index: 10;
+  min-width: 200px;
+  animation: scoreCardPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.score-breakdown-title {
+  font-family: 'Bangers', cursive;
+  font-size: 20px;
+  text-align: center;
+  color: var(--pop-red);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.score-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 0;
+  border-bottom: 2px dashed rgba(0,0,0,0.1);
+}
+
+.score-breakdown-row:last-child {
+  border-bottom: none;
+  padding-top: 8px;
+  font-size: 14px;
+  color: var(--pop-green);
+}
+
+.score-breakdown-row .label {
+  opacity: 0.7;
+}
+
+/* ========== 盲注结算 ========== */
+.blind-result {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.blind-result-card {
+  background: var(--pop-surface);
+  border: 6px solid var(--pop-ink);
+  border-radius: 2rem;
+  box-shadow: 12px 12px 0 0 var(--pop-button-yellow);
+  padding: 24px;
+  text-align: center;
+  width: 100%;
+  max-width: 340px;
+  animation: popIn 0.35s var(--pop-easing);
+}
+
+.blind-result-title {
+  font-family: 'Bangers', cursive;
+  font-size: 36px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.blind-result-title.win { color: var(--pop-green); text-shadow: 3px 3px 0 var(--pop-ink); }
+.blind-result-title.lose { color: var(--pop-red); text-shadow: 3px 3px 0 var(--pop-ink); }
+
+.blind-result-sub {
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  opacity: 0.7;
+  margin-bottom: 16px;
+}
+
+.blind-result-score {
+  background: var(--pop-surface-warm);
+  border: 4px solid var(--pop-ink);
+  border-radius: 1rem;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.blind-result-score-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 0;
+}
+
+.blind-result-score-row .val {
+  color: var(--pop-red);
+  font-family: 'Bangers', cursive;
+  font-size: 16px;
+}
+
+/* ========== 底部 Tab 导航 ========== */
+.bottom-nav {
+  display: flex;
+  border-top: 4px solid var(--pop-ink);
+  background: var(--pop-ink);
+  padding: 4px;
+  gap: 4px;
+}
+
+.bottom-nav-item {
+  flex: 1;
+  padding: 8px 4px;
+  text-align: center;
+  border-radius: 12px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.bottom-nav-item.active {
+  background: var(--pop-yellow);
+  color: var(--pop-ink);
+}
+
+.bottom-nav-icon {
+  font-size: 18px;
+}
+
+/* ========== 帮助/说明面板 ========== */
+.help-panel {
+  background: white;
+  border: 4px solid var(--pop-ink);
+  border-radius: 1rem;
+  padding: 12px;
+  box-shadow: 4px 4px 0 0 var(--pop-ink);
+  margin-bottom: 10px;
+}
+
+.help-title {
+  font-family: 'Bangers', cursive;
+  font-size: 18px;
+  text-transform: uppercase;
+  color: var(--pop-red);
+  margin-bottom: 8px;
+}
+
+.help-text {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--pop-ink);
+  opacity: 0.85;
+}
+
+.hand-rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hand-rank-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: var(--pop-surface-warm);
+  border: 3px solid var(--pop-ink);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.hand-rank-item.expanded {
+  border-radius: 8px 8px 0 0;
+  box-shadow: 3px 0 0 0 var(--pop-ink);
+}
+
+.hand-rank-item .rank-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.hand-rank-item .rank-num {
+  font-family: 'Bangers', cursive;
+  font-size: 14px;
+  color: var(--pop-red);
+  min-width: 24px;
+}
+
+.hand-rank-item .rank-mult {
+  color: var(--pop-green);
+  font-family: 'Bangers', cursive;
+  font-size: 14px;
+}
+
+/* ========== 抖动动画 ========== */
+@keyframes handExpand {
+  from { transform: scaleY(0); opacity: 0; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+/* 出牌区得分动画 */
+.play-area.scoring {
+  border-color: var(--pop-green);
+  box-shadow: 6px 6px 0 0 var(--pop-green);
+}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+// ========== MAHJONG JOKER - 游戏核心逻辑 ==========
+// 麻将小丑牌 - 核心规则引擎
+// 以麻将牌为表现形式，Balatro（小丑牌）为玩法框架
+
+(function() {
+  // ========== 牌库定义 ==========
+  const SUITS = {
+    wan:  { name: '万',  icon: '万', color: 'wan'  },
+    tiao: { name: '条',  icon: '条', color: 'tiao' },
+    tong: { name: '筒',  icon: '筒', color: 'tong' },
+    feng: { name: '风',  icon: '风', color: 'feng' },
+    jian: { name: '箭',  icon: '箭', color: 'jian' },
+  };
+
+  // 数值牌 1-9, 字牌用特殊值
+  const NUMBER_TILES = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const FENG_TILES = ['东', '南', '西', '北']; // 东南西北风
+  const JIAN_TILES = ['中', '发', '白']; // 中发白
+
+  // 生成牌池（每种牌4张，标准麻将136张，这里简化用全牌库）
+  function generateDeck() {
+    const deck = [];
+    let id = 0;
+    // 万条筒 1-9 各4张
+    ['wan', 'tiao', 'tong'].forEach(suit => {
+      NUMBER_TILES.forEach(value => {
+        for (let i = 0; i < 4; i++) {
+          deck.push({
+            id: `tile_${id++}`,
+            suit,
+            value,
+            display: value + SUITS[suit].icon,
+            rank: value, // 用于排序
+          });
+        }
+      });
+    });
+    // 风牌 各4张
+    FENG_TILES.forEach((name, idx) => {
+      for (let i = 0; i < 4; i++) {
+        deck.push({
+          id: `tile_${id++}`,
+          suit: 'feng',
+          value: name,
+          display: name,
+          rank: 100 + idx,
+        });
+      }
+    });
+    // 箭牌 各4张
+    JIAN_TILES.forEach((name, idx) => {
+      for (let i = 0; i < 4; i++) {
+        deck.push({
+          id: `tile_${id++}`,
+          suit: 'jian',
+          value: name,
+          display: name,
+          rank: 200 + idx,
+        });
+      }
+    });
+    return deck;
+  }
+
+  // 洗牌
+  function shuffleDeck(deck) {
+    const arr = [...deck];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // ========== 牌型判定 ==========
+  // 返回 { type, name, baseScore, multiplier, tilesUsed }
+  // 按 5 张组合判定麻将牌型（类似扑克的升级版本）
+
+  // 辅助：获取牌的数值（数字牌返回数字，字牌返回null表示特殊）
+  function getNumericValue(tile) {
+    if (['wan', 'tiao', 'tong'].includes(tile.suit)) {
+      return tile.value;
+    }
+    return null;
+  }
+
+  // 辅助：计算牌型key（用于分组统计）
+  function tileKey(tile) {
+    return `${tile.suit}:${tile.value}`;
+  }
+
+  // 判定牌型 - 输入5张已选牌
+  function evaluateHand(tiles) {
+    if (!tiles || tiles.length === 0) {
+      return { type: 'none', name: '未选择', baseScore: 0, multiplier: 0 };
+    }
+    if (tiles.length < 2) {
+      return { type: 'single', name: '散牌', baseScore: 5, multiplier: 1, tilesUsed: tiles.length };
+    }
+
+    const n = tiles.length;
+
+    // === 按"点数"统计（对子/三条/四条只看数字，不管花色）===
+    // 数字牌：value 1-9 作为点数
+    // 字牌：value 本身（如 '东','中'）作为点数，仅与同名字牌配对
+    const rankCount = {}; // 点数 -> 数量
+    tiles.forEach(t => {
+      const v = getNumericValue(t);
+      const key = v !== null ? `n_${v}` : `h_${t.suit}_${t.value}`;
+      rankCount[key] = (rankCount[key] || 0) + 1;
+    });
+    const counts = Object.values(rankCount).sort((a, b) => b - a);
+
+    // 数字牌列表（用于顺子 / 同花判断）
+    const numTiles = tiles.filter(t => getNumericValue(t) !== null);
+    const uniqueValues = [...new Set(numTiles.map(t => t.value))].sort((a, b) => a - b);
+
+    // 顺子检测（只看数字点数，不管花色；需要 5 张不同且连续的数字）
+    let isStraight = false;
+    let straightLen = 0;
+    if (uniqueValues.length >= 5) {
+      for (let i = 0; i <= uniqueValues.length - 5; i++) {
+        if (uniqueValues[i + 4] - uniqueValues[i] === 4) {
+          isStraight = true;
+          straightLen = 5;
+          break;
+        }
+      }
+    }
+
+    // 同花检测（所有牌都是同花色数字牌）
+    let isFlush = false;
+    let flushSuit = null;
+    if (numTiles.length === n && n >= 5) {
+      const suit = numTiles[0].suit;
+      if (numTiles.every(t => t.suit === suit)) {
+        isFlush = true;
+        flushSuit = suit;
+      }
+    }
+
+    // 字一色检测（全是字牌）
+    const allHonor = tiles.every(t => t.suit === 'feng' || t.suit === 'jian');
+
+    // === 牌型判定，优先级从高到低 ===
+    // 仅当牌数足够时才判定对应牌型
+
+    // --- 5 张牌型 ---
+    if (n >= 5) {
+      // 同花顺（清龙）
+      if (isStraight && isFlush) {
+        return { type: 'qing-long', name: '清龙', baseScore: 100, multiplier: 8, tilesUsed: 5 };
+      }
+      // 四条 / 字牌四杠
+      if (counts[0] >= 4) {
+        if (allHonor) {
+          return { type: 'si-gang-honor', name: '字牌四杠', baseScore: 200, multiplier: 20, tilesUsed: 5 };
+        }
+        return { type: 'si-gang', name: '四杠', baseScore: 120, multiplier: 7, tilesUsed: 5 };
+      }
+      // 字一色（全字牌，倍率极高）
+      if (allHonor) {
+        // 字牌葫芦 / 字牌四杠（同花色概念中字牌算一类，优先级在葫芦之上）
+        if (counts[0] >= 3 && counts[1] >= 2) {
+          return { type: 'zi-yi-se-hulu', name: '字一色葫芦', baseScore: 150, multiplier: 15, tilesUsed: 5 };
+        }
+        return { type: 'zi-yi-se', name: '字一色', baseScore: 100, multiplier: 10, tilesUsed: 5 };
+      }
+      // 清一色 / 同花（优先级高于葫芦，参考 Balatro 同花 > 葫芦）
+      if (isFlush) {
+        return { type: 'qing-yi-se', name: '清一色', baseScore: 70, multiplier: 5, tilesUsed: 5 };
+      }
+      // 葫芦（3+2）
+      if (counts[0] >= 3 && counts[1] >= 2) {
+        return { type: 'hu-lu', name: '葫芦', baseScore: 60, multiplier: 4, tilesUsed: 5 };
+      }
+      // 顺子
+      if (isStraight) {
+        return { type: 'shun-zi', name: '顺子', baseScore: 30, multiplier: 4, tilesUsed: 5 };
+      }
+    }
+
+    // --- 3+ 张牌型 ---
+    if (n >= 3) {
+      // 三条
+      if (counts[0] >= 3) {
+        return { type: 'san-ke', name: '三刻', baseScore: 30, multiplier: 3, tilesUsed: 5 };
+      }
+    }
+
+    // --- 2+ 张牌型 ---
+    if (n >= 4) {
+      // 两对
+      if (counts[0] >= 2 && counts[1] >= 2) {
+        return { type: 'liang-dui', name: '两对', baseScore: 20, multiplier: 2, tilesUsed: 5 };
+      }
+    }
+
+    if (counts[0] >= 2) {
+      return { type: 'yi-dui', name: '一对', baseScore: 10, multiplier: 2, tilesUsed: Math.max(n, 2) };
+    }
+
+    // 散牌（高牌）
+    return { type: 'san-pai', name: '散牌', baseScore: 5, multiplier: 1, tilesUsed: n };
+  }
+
+  // ========== 小丑牌定义 ==========
+  // 每张小丑牌有独特效果，影响计分
+  const JOKER_CARDS = [
+    // ========== 普通（16种） ==========
+    {
+      id: 'joker_pairs_plus',
+      name: '对子大师',
+      emoji: '🀄',
+      desc: '对子牌型 ×2 倍率',
+      rarity: 'common',
+      price: 4,
+      effect: { type: 'multiply_hand', condition: 'pair', value: 2 },
+    },
+    {
+      id: 'joker_triple_king',
+      name: '三刻之王',
+      emoji: '👑',
+      desc: '三刻及以上 +5 倍率',
+      rarity: 'common',
+      price: 5,
+      effect: { type: 'add_mult', condition: 'triple_or_better', value: 5 },
+    },
+    {
+      id: 'joker_flower',
+      name: '花牌',
+      emoji: '🌸',
+      desc: '每打出一张 +4 分',
+      rarity: 'common',
+      price: 3,
+      effect: { type: 'add_score_per_tile', value: 4 },
+    },
+    {
+      id: 'joker_lucky',
+      name: '幸运牌',
+      emoji: '🍀',
+      desc: '基础分 +10',
+      rarity: 'common',
+      price: 4,
+      effect: { type: 'add_base', value: 10 },
+    },
+    {
+      id: 'joker_wan_suit',
+      name: '万子专家',
+      emoji: '万',
+      desc: '含万字牌 +3 倍率',
+      rarity: 'common',
+      price: 4,
+      effect: { type: 'add_mult_suit', suit: 'wan', value: 3 },
+    },
+    {
+      id: 'joker_tong_suit',
+      name: '筒子专家',
+      emoji: '筒',
+      desc: '含筒子牌 +3 倍率',
+      rarity: 'common',
+      price: 4,
+      effect: { type: 'add_mult_suit', suit: 'tong', value: 3 },
+    },
+    {
+      id: 'joker_feng_suit',
+      name: '风牌达人',
+      emoji: '风',
+      desc: '含风牌 +4 倍率',
+      rarity: 'common',
+      price: 5,
+      effect: { type: 'add_mult_suit', suit: 'feng', value: 4 },
+    },
+    {
+      id: 'joker_double',
+      name: '翻倍小牌',
+      emoji: '✌️',
+      desc: '打出2张牌时 ×2 倍率',
+      rarity: 'common',
+      price: 3,
+      effect: { type: 'hand_size_mult', size: 2, value: 2 },
+    },
+    {
+      id: 'joker_first_hand',
+      name: '开门红',
+      emoji: '🚩',
+      desc: '每关首次出牌 ×2 倍率',
+      rarity: 'common',
+      price: 5,
+      effect: { type: 'first_hand_mult', value: 2 },
+    },
+    {
+      id: 'joker_discard_bonus',
+      name: '弃牌礼',
+      emoji: '🎁',
+      desc: '每弃一张牌 +8 分',
+      rarity: 'common',
+      price: 4,
+      effect: { type: 'add_base_per_discard', value: 8 },
+    },
+    {
+      id: 'joker_low_value',
+      name: '小三传奇',
+      emoji: '🔻',
+      desc: '含 1-3 点的牌 +2 倍率/张',
+      rarity: 'common',
+      price: 4,
+      effect: { type: 'add_mult_per_low_tile', maxValue: 3, value: 2 },
+    },
+    {
+      id: 'joker_late_game',
+      name: '厚积薄发',
+      emoji: '⏱️',
+      desc: '每关最后一手 +6 倍率',
+      rarity: 'common',
+      price: 5,
+      effect: { type: 'last_hand_mult', value: 6 },
+    },
+    {
+      id: 'joker_odd',
+      name: '奇数狂潮',
+      emoji: '1️⃣',
+      desc: '全是奇数牌 +5 倍率',
+      rarity: 'common',
+      price: 5,
+      effect: { type: 'all_odd_bonus', value: 5 },
+    },
+    {
+      id: 'joker_even',
+      name: '偶数派对',
+      emoji: '2️⃣',
+      desc: '全是偶数牌 +5 倍率',
+      rarity: 'common',
+      price: 5,
+      effect: { type: 'all_even_bonus', value: 5 },
+    },
+    {
+      id: 'joker_economist',
+      name: '经济学家',
+      emoji: '💵',
+      desc: '商店结束时 +$3',
+      rarity: 'common',
+      price: 6,
+      effect: { type: 'shop_end_money', value: 3 },
+    },
+    {
+      id: 'joker_cheapskate',
+      name: '吝啬鬼',
+      emoji: '🦝',
+      desc: '商店价格 -$1（最低 $1）',
+      rarity: 'common',
+      price: 6,
+      effect: { type: 'shop_discount', value: 1 },
+    },
+
+    // ========== 精良（18种） ==========
+    {
+      id: 'joker_straight',
+      name: '顺子专家',
+      emoji: '📏',
+      desc: '顺子牌型 ×3 倍率',
+      rarity: 'uncommon',
+      price: 7,
+      effect: { type: 'multiply_hand', condition: 'straight', value: 3 },
+    },
+    {
+      id: 'joker_greed',
+      name: '贪婪小丑',
+      emoji: '💰',
+      desc: '总倍率 ×1.5',
+      rarity: 'uncommon',
+      price: 8,
+      effect: { type: 'multiply_total', value: 1.5 },
+    },
+    {
+      id: 'joker_bamboo',
+      name: '条子专家',
+      emoji: '条',
+      desc: '含条子牌 +5 倍率',
+      rarity: 'uncommon',
+      price: 6,
+      effect: { type: 'add_mult_suit', suit: 'tiao', value: 5 },
+    },
+    {
+      id: 'joker_dragon',
+      name: '龙牌',
+      emoji: '🐉',
+      desc: '清一色牌型 ×2 倍率',
+      rarity: 'uncommon',
+      price: 8,
+      effect: { type: 'multiply_hand', condition: 'flush', value: 2 },
+    },
+    {
+      id: 'joker_combo',
+      name: '连击',
+      emoji: '⚡',
+      desc: '连续出相同牌型 +2 倍率',
+      rarity: 'uncommon',
+      price: 7,
+      effect: { type: 'combo_bonus', value: 2 },
+    },
+    {
+      id: 'joker_hu_lu',
+      name: '葫芦收藏家',
+      emoji: '🫙',
+      desc: '葫芦牌型 ×2.5 倍率',
+      rarity: 'uncommon',
+      price: 8,
+      effect: { type: 'multiply_hand', condition: 'full_house', value: 2.5 },
+    },
+    {
+      id: 'joker_five_tiles',
+      name: '满手都是牌',
+      emoji: '✋',
+      desc: '打出5张牌时 ×1.5 倍率',
+      rarity: 'uncommon',
+      price: 7,
+      effect: { type: 'hand_size_mult', size: 5, value: 1.5 },
+    },
+    {
+      id: 'joker_green_fa',
+      name: '发财',
+      emoji: '发',
+      desc: '每含一张发财 +12 倍率',
+      rarity: 'uncommon',
+      price: 7,
+      effect: { type: 'add_mult_per_tile', tile: { suit: 'jian', value: '发' }, value: 12 },
+    },
+    {
+      id: 'joker_white_dragon',
+      name: '白板',
+      emoji: '白',
+      desc: '每含一张白板 +8 倍率',
+      rarity: 'uncommon',
+      price: 6,
+      effect: { type: 'add_mult_per_tile', tile: { suit: 'jian', value: '白' }, value: 8 },
+    },
+    {
+      id: 'joker_all_nines',
+      name: '九莲宝灯',
+      emoji: '9️⃣',
+      desc: '含数字9的牌 +6 倍率/张',
+      rarity: 'uncommon',
+      price: 8,
+      effect: { type: 'add_mult_per_value_tile', tileValue: 9, value: 6 },
+    },
+    {
+      id: 'joker_ones',
+      name: '幺鸡万岁',
+      emoji: '①',
+      desc: '含数字1的牌 +5 倍率/张',
+      rarity: 'uncommon',
+      price: 7,
+      effect: { type: 'add_mult_per_value_tile', tileValue: 1, value: 5 },
+    },
+    {
+      id: 'joker_same_value',
+      name: '同心协力',
+      emoji: '🔗',
+      desc: '全是相同数字 +7 倍率',
+      rarity: 'uncommon',
+      price: 8,
+      effect: { type: 'all_same_value_bonus', value: 7 },
+    },
+    {
+      id: 'joker_ascending',
+      name: '步步高升',
+      emoji: '📈',
+      desc: '基础分按回合数 × 1.2 倍',
+      rarity: 'uncommon',
+      price: 9,
+      effect: { type: 'ante_scale_base', value: 1.2 },
+    },
+    {
+      id: 'joker_iron_will',
+      name: '钢铁意志',
+      emoji: '🛡️',
+      desc: '血量为 1 时 ×2 倍率',
+      rarity: 'uncommon',
+      price: 8,
+      effect: { type: 'low_hp_mult', value: 2 },
+    },
+    {
+      id: 'joker_hands_up',
+      name: '快手',
+      emoji: '🙌',
+      desc: '每关 +1 次出牌机会',
+      rarity: 'uncommon',
+      price: 10,
+      effect: { type: 'extra_hands', value: 1 },
+    },
+    {
+      id: 'joker_extra_discard',
+      name: '多摸两张',
+      emoji: '🎴',
+      desc: '每关 +1 次弃牌次数',
+      rarity: 'uncommon',
+      price: 9,
+      effect: { type: 'extra_discards', value: 1 },
+    },
+    {
+      id: 'joker_interest',
+      name: '利滚利',
+      emoji: '🪙',
+      desc: '商店结束时 + 钱数的 25%（向下取整）',
+      rarity: 'uncommon',
+      price: 10,
+      effect: { type: 'shop_end_interest', value: 0.25 },
+    },
+    {
+      id: 'joker_reroll_free',
+      name: '免费刷新',
+      emoji: '🔄',
+      desc: '商店每次首刷免费',
+      rarity: 'uncommon',
+      price: 8,
+      effect: { type: 'free_reroll', value: 1 },
+    },
+
+    // ========== 稀有（12种） ==========
+    {
+      id: 'joker_quad_lover',
+      name: '四杠狂热',
+      emoji: '💎',
+      desc: '四杠牌型 ×3 倍率',
+      rarity: 'rare',
+      price: 12,
+      effect: { type: 'multiply_hand', condition: 'four_kind', value: 3 },
+    },
+    {
+      id: 'joker_red_dragon',
+      name: '红中',
+      emoji: '中',
+      desc: '每含一张中 +10 倍率',
+      rarity: 'rare',
+      price: 10,
+      effect: { type: 'add_mult_per_tile', tile: { suit: 'jian', value: '中' }, value: 10 },
+    },
+    {
+      id: 'joker_rainbow',
+      name: '彩虹',
+      emoji: '🌈',
+      desc: '5张全不同花色 +8 倍率',
+      rarity: 'rare',
+      price: 10,
+      effect: { type: 'rainbow_bonus', value: 8 },
+    },
+    {
+      id: 'joker_house',
+      name: '庄家',
+      emoji: '🏠',
+      desc: '总倍率 ×2，但每次 -2 弃牌',
+      rarity: 'rare',
+      price: 12,
+      effect: { type: 'high_risk', multValue: 2, discardPenalty: 2 },
+    },
+    {
+      id: 'joker_qing_long',
+      name: '青龙偃月',
+      emoji: '🐲',
+      desc: '清龙（清一色顺子） ×4 倍率',
+      rarity: 'rare',
+      price: 14,
+      effect: { type: 'multiply_hand', condition: 'qing_long', value: 4 },
+    },
+    {
+      id: 'joker_pure_triple',
+      name: '纯三刻',
+      emoji: '🧲',
+      desc: '三刻牌型的基础分 ×3',
+      rarity: 'rare',
+      price: 12,
+      effect: { type: 'multiply_base_hand', condition: 'triple', value: 3 },
+    },
+    {
+      id: 'joker_jian_lover',
+      name: '箭牌大师',
+      emoji: '🀄',
+      desc: '含箭牌（中发白） +8 倍率/种',
+      rarity: 'rare',
+      price: 12,
+      effect: { type: 'jian_type_bonus', value: 8 },
+    },
+    {
+      id: 'joker_feng_lover',
+      name: '四风齐聚',
+      emoji: '🌪️',
+      desc: '4 种风牌齐出 +10 倍率',
+      rarity: 'rare',
+      price: 13,
+      effect: { type: 'all_four_winds_bonus', value: 10 },
+    },
+    {
+      id: 'joker_chance',
+      name: '赌徒',
+      emoji: '🎲',
+      desc: '50% 概率 ×4 倍率，否则 ×0.5',
+      rarity: 'rare',
+      price: 11,
+      effect: { type: 'gamble_mult', winValue: 4, loseValue: 0.5 },
+    },
+    {
+      id: 'joker_sell_back',
+      name: '二手市场',
+      emoji: '🏪',
+      desc: '出售小丑多获得 50% 金钱',
+      rarity: 'rare',
+      price: 9,
+      effect: { type: 'sell_bonus', value: 0.5 },
+    },
+    {
+      id: 'joker_blue_moon',
+      name: '蓝月亮',
+      emoji: '🌕',
+      desc: '没有对子时基础分 ×2',
+      rarity: 'rare',
+      price: 11,
+      effect: { type: 'no_pair_base_mult', value: 2 },
+    },
+    {
+      id: 'joker_flat_bonus',
+      name: '保底达人',
+      emoji: '🛟',
+      desc: '每次出牌至少得 100 分',
+      rarity: 'rare',
+      price: 10,
+      effect: { type: 'min_score', value: 100 },
+    },
+
+    // ========== 传说（6种） ==========
+    {
+      id: 'joker_mahjong_god',
+      name: '麻将之神',
+      emoji: '🀅',
+      desc: '总倍率 ×3',
+      rarity: 'legendary',
+      price: 20,
+      effect: { type: 'multiply_total', value: 3 },
+    },
+    {
+      id: 'joker_zi_yi_se',
+      name: '字圣',
+      emoji: '✨',
+      desc: '字一色 ×4 倍率',
+      rarity: 'legendary',
+      price: 18,
+      effect: { type: 'multiply_hand', condition: 'all_honor', value: 4 },
+    },
+    {
+      id: 'joker_golden',
+      name: '黄金小丑',
+      emoji: '🌟',
+      desc: '每有一个小丑 +2 倍率',
+      rarity: 'legendary',
+      price: 16,
+      effect: { type: 'joker_count_bonus', value: 2 },
+    },
+    {
+      id: 'joker_philosopher',
+      name: '哲学家',
+      emoji: '🦉',
+      desc: '打出单张牌时 ×10 倍率',
+      rarity: 'legendary',
+      price: 18,
+      effect: { type: 'hand_size_mult', size: 1, value: 10 },
+    },
+    {
+      id: 'joker_apotheosis',
+      name: '封神',
+      emoji: '💫',
+      desc: '四杠以上牌型基础分 ×5',
+      rarity: 'legendary',
+      price: 22,
+      effect: { type: 'multiply_base_hand', condition: 'four_kind', value: 5 },
+    },
+    {
+      id: 'joker_tycoon',
+      name: '商业大亨',
+      emoji: '💼',
+      desc: '商店结束时 + 钱数的 50%',
+      rarity: 'legendary',
+      price: 20,
+      effect: { type: 'shop_end_interest', value: 0.5 },
+    },
+  ];
+
+  // ========== 盲注/关卡系统 ==========
+  // 10 大回合，每回合 3 小关（小盲 / 大盲 / Boss），最终目标 300,000
+  const BLINDS = [
+    // 回合一
+    { id: 's1', ante: 1, name: '小盲 1-1', target: 100, type: 'small' },
+    { id: 'b1', ante: 1, name: '大盲 1-2', target: 150, type: 'big' },
+    { id: 'boss1', ante: 1, name: 'Boss 1-3', target: 200, type: 'boss' },
+    // 回合二
+    { id: 's2', ante: 2, name: '小盲 2-1', target: 300, type: 'small' },
+    { id: 'b2', ante: 2, name: '大盲 2-2', target: 400, type: 'big' },
+    { id: 'boss2', ante: 2, name: 'Boss 2-3', target: 500, type: 'boss' },
+    // 回合三
+    { id: 's3', ante: 3, name: '小盲 3-1', target: 700, type: 'small' },
+    { id: 'b3', ante: 3, name: '大盲 3-2', target: 1000, type: 'big' },
+    { id: 'boss3', ante: 3, name: 'Boss 3-3', target: 1300, type: 'boss' },
+    // 回合四
+    { id: 's4', ante: 4, name: '小盲 4-1', target: 1500, type: 'small' },
+    { id: 'b4', ante: 4, name: '大盲 4-2', target: 2000, type: 'big' },
+    { id: 'boss4', ante: 4, name: 'Boss 4-3', target: 2800, type: 'boss' },
+    // 回合五
+    { id: 's5', ante: 5, name: '小盲 5-1', target: 3500, type: 'small' },
+    { id: 'b5', ante: 5, name: '大盲 5-2', target: 5000, type: 'big' },
+    { id: 'boss5', ante: 5, name: 'Boss 5-3', target: 7000, type: 'boss' },
+    // 回合六
+    { id: 's6', ante: 6, name: '小盲 6-1', target: 8000, type: 'small' },
+    { id: 'b6', ante: 6, name: '大盲 6-2', target: 12000, type: 'big' },
+    { id: 'boss6', ante: 6, name: 'Boss 6-3', target: 16000, type: 'boss' },
+    // 回合七
+    { id: 's7', ante: 7, name: '小盲 7-1', target: 20000, type: 'small' },
+    { id: 'b7', ante: 7, name: '大盲 7-2', target: 28000, type: 'big' },
+    { id: 'boss7', ante: 7, name: 'Boss 7-3', target: 38000, type: 'boss' },
+    // 回合八
+    { id: 's8', ante: 8, name: '小盲 8-1', target: 45000, type: 'small' },
+    { id: 'b8', ante: 8, name: '大盲 8-2', target: 60000, type: 'big' },
+    { id: 'boss8', ante: 8, name: 'Boss 8-3', target: 80000, type: 'boss' },
+    // 回合九
+    { id: 's9', ante: 9, name: '小盲 9-1', target: 100000, type: 'small' },
+    { id: 'b9', ante: 9, name: '大盲 9-2', target: 130000, type: 'big' },
+    { id: 'boss9', ante: 9, name: 'Boss 9-3', target: 170000, type: 'boss' },
+    // 回合十（最终）
+    { id: 's10', ante: 10, name: '小盲 10-1', target: 200000, type: 'small' },
+    { id: 'b10', ante: 10, name: '大盲 10-2', target: 250000, type: 'big' },
+    { id: 'boss10', ante: 10, name: '最终 Boss', target: 300000, type: 'boss' },
+  ];
+
+  // ========== 计分：应用小丑牌效果 ==========
+  function calculateScore(tiles, handResult, jokers, gameState) {
+    let baseScore = handResult.baseScore;
+    let multiplier = handResult.multiplier;
+
+    if (!tiles || tiles.length === 0) return { baseScore, multiplier, total: 0 };
+
+    jokers.forEach(joker => {
+      const eff = joker.effect;
+      switch (eff.type) {
+        case 'add_base':
+          baseScore += eff.value;
+          break;
+        case 'add_score_per_tile':
+          baseScore += eff.value * tiles.length;
+          break;
+        case 'add_mult':
+          if (matchCondition(handResult.type, eff.condition)) {
+            multiplier += eff.value;
+          }
+          break;
+        case 'add_mult_suit':
+          if (tiles.some(t => t.suit === eff.suit)) {
+            multiplier += eff.value;
+          }
+          break;
+        case 'add_mult_per_tile':
+          const count = tiles.filter(t => t.suit === eff.tile.suit && t.value === eff.tile.value).length;
+          multiplier += eff.value * count;
+          break;
+        case 'add_mult_per_value_tile': {
+          const c = tiles.filter(t => t.value === eff.tileValue).length;
+          multiplier += eff.value * c;
+          break;
+        }
+        case 'add_mult_per_low_tile': {
+          const c = tiles.filter(t => typeof t.value === 'number' && t.value <= eff.maxValue).length;
+          multiplier += eff.value * c;
+          break;
+        }
+        case 'multiply_hand':
+          if (matchCondition(handResult.type, eff.condition)) {
+            multiplier *= eff.value;
+          }
+          break;
+        case 'multiply_base_hand':
+          if (matchCondition(handResult.type, eff.condition)) {
+            baseScore *= eff.value;
+          }
+          break;
+        case 'multiply_total':
+          multiplier *= eff.value;
+          break;
+        case 'rainbow_bonus':
+          const suits = new Set(tiles.map(t => t.suit));
+          if (suits.size >= 4) {
+            multiplier += eff.value;
+          }
+          break;
+        case 'joker_count_bonus':
+          multiplier += eff.value * jokers.length;
+          break;
+        case 'high_risk':
+          multiplier *= eff.multValue;
+          break;
+        case 'combo_bonus':
+          if (gameState && gameState.lastHandType === handResult.type && gameState.comboCount > 0) {
+            multiplier += eff.value * gameState.comboCount;
+          }
+          break;
+        case 'hand_size_mult':
+          if (tiles.length === eff.size) {
+            multiplier *= eff.value;
+          }
+          break;
+        case 'first_hand_mult':
+          if (gameState && gameState.isFirstHand) {
+            multiplier *= eff.value;
+          }
+          break;
+        case 'last_hand_mult':
+          if (gameState && gameState.isLastHand) {
+            multiplier += eff.value;
+          }
+          break;
+        case 'all_odd_bonus': {
+          const nums = tiles.filter(t => typeof t.value === 'number');
+          if (nums.length === tiles.length && nums.length > 0 && nums.every(t => t.value % 2 === 1)) {
+            multiplier += eff.value;
+          }
+          break;
+        }
+        case 'all_even_bonus': {
+          const nums = tiles.filter(t => typeof t.value === 'number');
+          if (nums.length === tiles.length && nums.length > 0 && nums.every(t => t.value % 2 === 0)) {
+            multiplier += eff.value;
+          }
+          break;
+        }
+        case 'all_same_value_bonus': {
+          const nums = tiles.filter(t => typeof t.value === 'number');
+          if (nums.length === tiles.length && nums.length > 0 && nums.every(t => t.value === nums[0].value)) {
+            multiplier += eff.value;
+          }
+          break;
+        }
+        case 'ante_scale_base':
+          if (gameState && gameState.ante) {
+            baseScore *= 1 + (eff.value - 1) * gameState.ante;
+          }
+          break;
+        case 'low_hp_mult':
+          if (gameState && gameState.lives === 1) {
+            multiplier *= eff.value;
+          }
+          break;
+        case 'jian_type_bonus': {
+          const jianValues = new Set(tiles.filter(t => t.suit === 'jian').map(t => t.value));
+          multiplier += eff.value * jianValues.size;
+          break;
+        }
+        case 'all_four_winds_bonus': {
+          const winds = new Set(tiles.filter(t => t.suit === 'feng').map(t => t.value));
+          if (winds.size >= 4) multiplier += eff.value;
+          break;
+        }
+        case 'gamble_mult': {
+          const win = Math.random() < 0.5;
+          multiplier *= win ? eff.winValue : eff.loseValue;
+          break;
+        }
+        case 'no_pair_base_mult':
+          if (handResult.type === 'dan-zhang' || handResult.type === 'shun-zi' || handResult.type === 'qing-yi-se' || handResult.type === 'qing-long') {
+            baseScore *= eff.value;
+          }
+          break;
+        case 'min_score': {
+          // 最后在 total 前处理，这里暂记
+          break;
+        }
+      }
+    });
+
+    // min_score 保底（取所有小丑里最大值）
+    const minScoreJoker = jokers.find(j => j.effect.type === 'min_score');
+    let total = Math.floor(baseScore * multiplier);
+    if (minScoreJoker && total < minScoreJoker.effect.value) {
+      total = minScoreJoker.effect.value;
+    }
+    return {
+      baseScore: Math.floor(baseScore),
+      multiplier: +multiplier.toFixed(1),
+      total,
+    };
+  }
+
+  function matchCondition(handType, condition) {
+    const conditions = {
+      pair: ['yi-dui', 'liang-dui', 'hu-lu', 'san-ke', 'si-gang', 'zi-yi-se-hulu', 'si-gang-honor'],
+      triple_or_better: ['san-ke', 'hu-lu', 'si-gang', 'qing-long', 'zi-yi-se-hulu', 'si-gang-honor'],
+      triple: ['san-ke'],
+      straight: ['shun-zi', 'qing-long'],
+      flush: ['qing-yi-se', 'qing-long'],
+      four_kind: ['si-gang', 'si-gang-honor'],
+      all_honor: ['zi-yi-se', 'zi-yi-se-hulu', 'si-gang-honor'],
+      full_house: ['hu-lu', 'zi-yi-se-hulu'],
+      qing_long: ['qing-long'],
+    };
+    return conditions[condition]?.includes(handType) || false;
+  }
+
+  // ========== 随机抽取商店小丑牌 ==========
+  function getRandomJokers(count, excludeIds = []) {
+    const excludeSet = new Set(excludeIds);
+    const pool = JOKER_CARDS.filter(j => !excludeSet.has(j.id));
+    // 按稀有度加权
+    const weights = { common: 50, uncommon: 30, rare: 15, legendary: 5 };
+    const weightedPool = [];
+    pool.forEach(j => {
+      const w = weights[j.rarity] || 10;
+      for (let i = 0; i < w; i++) weightedPool.push(j);
+    });
+
+    const result = [];
+    const usedIds = new Set();
+    while (result.length < count && weightedPool.length > 0) {
+      const idx = Math.floor(Math.random() * weightedPool.length);
+      const joker = weightedPool[idx];
+      if (!usedIds.has(joker.id)) {
+        usedIds.add(joker.id);
+        result.push({ ...joker, instanceId: `j_${Date.now()}_${Math.random().toString(36).slice(2, 7)}` });
+      }
+      weightedPool.splice(idx, 1);
+    }
+    return result;
+  }
+
+  // ========== 导出到全局 ==========
+  Object.assign(window, {
+    MahjongGame: {
+      SUITS,
+      NUMBER_TILES,
+      FENG_TILES,
+      JIAN_TILES,
+      JOKER_CARDS,
+      BLINDS,
+      generateDeck,
+      shuffleDeck,
+      evaluateHand,
+      calculateScore,
+      getRandomJokers,
+      tileKey,
+    },
+  });
+})();
+  </script>
+  <script>
+// ========== 音效系统 - Web Audio API 程序化生成 ==========
+(function() {
+  let audioCtx = null;
+  let masterGain = null;
+  let bgmGain = null;
+  let sfxGain = null;
+  let bgmOscillators = [];
+  let bgmInterval = null;
+  let bgmPlaying = false;
+  let bgmBarIndex = 0;
+  let muted = localStorage.getItem('mj_muted') === '1';
+
+  function ensureCtx() {
+    if (!audioCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return false;
+      audioCtx = new Ctx();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = muted ? 0 : 0.9;
+      masterGain.connect(audioCtx.destination);
+
+      bgmGain = audioCtx.createGain();
+      bgmGain.gain.value = 0.18;
+      bgmGain.connect(masterGain);
+
+      sfxGain = audioCtx.createGain();
+      sfxGain.gain.value = 0.8;
+      sfxGain.connect(masterGain);
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    return true;
+  }
+
+  // 全局首次点击自动激活音频上下文（浏览器自动播放策略）
+  function autoActivate() {
+    ensureCtx();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener('click', autoActivate, { once: true });
+      document.addEventListener('touchstart', autoActivate, { once: true });
+    });
+  } else {
+    document.addEventListener('click', autoActivate, { once: true });
+    document.addEventListener('touchstart', autoActivate, { once: true });
+  }
+
+  // ===== 点击音 - 清脆短音 =====
+  function playClick() {
+    if (!ensureCtx()) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.03);
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+    osc.connect(gain);
+    gain.connect(sfxGain);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.1);
+  }
+
+  // ===== 选牌音 - 麻将碰撞感 =====
+  function playTileSelect() {
+    if (!ensureCtx()) return;
+    const now = audioCtx.currentTime;
+    // 主体 - 木质敲击
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(420, now);
+    osc.frequency.exponentialRampToValueAtTime(180, now + 0.06);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.35, now + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+    osc.connect(gain);
+    gain.connect(sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.12);
+
+    // 高频 - 清脆感
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(1400, now);
+    osc2.frequency.exponentialRampToValueAtTime(900, now + 0.04);
+    gain2.gain.setValueAtTime(0, now);
+    gain2.gain.linearRampToValueAtTime(0.2, now + 0.003);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+    osc2.connect(gain2);
+    gain2.connect(sfxGain);
+    osc2.start(now);
+    osc2.stop(now + 0.08);
+  }
+
+  // ===== 出牌音 - 麻将拍桌 =====
+  function playPlay() {
+    if (!ensureCtx()) return;
+    const now = audioCtx.currentTime;
+    // 低频轰声
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(200, now);
+    osc.frequency.exponentialRampToValueAtTime(80, now + 0.1);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.3, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+    osc.connect(gain);
+    gain.connect(sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.18);
+
+    // 噪声脆响
+    const bufferSize = audioCtx.sampleRate * 0.08;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.value = 0.15;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 1000;
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(sfxGain);
+    noise.start(now);
+  }
+
+  // ===== 金币/得分音 =====
+  function playCoin() {
+    if (!ensureCtx()) return;
+    const now = audioCtx.currentTime;
+    const notes = [660, 990];
+    notes.forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const t = now + i * 0.06;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.3, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      osc.connect(gain);
+      gain.connect(sfxGain);
+      osc.start(t);
+      osc.stop(t + 0.22);
+    });
+  }
+
+  // ===== 失败/错误音 =====
+  function playError() {
+    if (!ensureCtx()) return;
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(110, now + 0.2);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.25, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    osc.connect(gain);
+    gain.connect(sfxGain);
+    osc.start(now);
+    osc.stop(now + 0.28);
+  }
+
+  // ===== 胜利音 - 上升琶音 =====
+  function playWin() {
+    if (!ensureCtx()) return;
+    const now = audioCtx.currentTime;
+    const notes = [523, 659, 784, 1047]; // C E G C
+    notes.forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      const t = now + i * 0.08;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.3, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      osc.connect(gain);
+      gain.connect(sfxGain);
+      osc.start(t);
+      osc.stop(t + 0.35);
+    });
+  }
+
+  // ===== BGM - 简易中式五声音阶循环 =====
+  // 五声音阶宫商角徵羽: C D E G A
+  const PENTA = [262, 294, 330, 392, 440]; // 中低音
+  const PENTA_HIGH = [523, 587, 659, 784, 880]; // 高音
+
+  function playBGMNote(freq, startTime, duration, volume = 0.2, type = 'triangle') {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(volume, startTime + 0.03);
+    gain.gain.setValueAtTime(volume, startTime + duration * 0.7);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+    osc.connect(gain);
+    gain.connect(bgmGain);
+    osc.start(startTime);
+    osc.stop(startTime + duration + 0.05);
+    return osc;
+  }
+
+  function scheduleBGMBar(startTime, barIndex) {
+    // 五声音阶: C D E G A (宫商角徵羽)
+    // 高音区: C5 D5 E5 G5 A5 = 523 587 659 784 880
+    // 中高区: C4 D4 E4 G4 A4 = 262 294 330 392 440
+    // 低音区: C3 G3 C3 = 131 196 131
+
+    // 两句旋律交替（A 段轻快，B 段上扬），每段 8 拍
+    const melodyA = [
+      [2, 0.5], [3, 0.3], [2, 0.2], [4, 0.5], // 高 宫-徵-宫-羽  (E G E A)
+      [3, 0.3], [2, 0.2], [1, 0.5], [0, 0.5], // 徵-宫-商-宫      (G E D C)
+    ];
+    const melodyB = [
+      [4, 0.4], [3, 0.4], [2, 0.4], [4, 0.4], // 羽-徵-宫-羽      (A G E A)
+      [3, 0.4], [2, 0.4], [1, 0.4], [0, 0.8], // 徵-宫-商-低宫    (G E D C)
+    ];
+    // 低音进行: 宫-徵-商-羽（常见的 I-V-vi-IV 变体，用五声）
+    const bassLine = [0, 3, 1, 4, 0, 3, 0, 0]; // 对应每拍低音
+
+    const melody = barIndex % 2 === 0 ? melodyA : melodyB;
+    const PENTA_MELODY = PENTA_HIGH;
+
+    let t = startTime;
+    melody.forEach((m, i) => {
+      const freq = PENTA_MELODY[m[0]];
+      const dur = m[1];
+      // 主旋律 - 三角波为主，加一点点方波增加质感
+      playBGMNote(freq, t, dur * 0.9, 0.14, 'triangle');
+      playBGMNote(freq, t, dur * 0.85, 0.05, 'square');
+      // 低八度陪衬（温暖的底）
+      playBGMNote(freq / 2, t, dur * 0.9, 0.07, 'triangle');
+      // 低音：每拍一个
+      const bassFreq = PENTA[bassLine[i % 8]] / 2; // C3 左右
+      playBGMNote(bassFreq, t, Math.min(dur, 0.45), 0.12, 'sine');
+      // 鼓点（沙锤感）：每拍开头
+      playDrum(t, 0.04, 0.06);
+      t += dur;
+    });
+    return t;
+  }
+
+  // 简易沙锤/底鼓噪声
+  function playDrum(startTime, duration, volume) {
+    const bufferSize = Math.floor(audioCtx.sampleRate * duration);
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      // 衰减的噪声
+      const env = 1 - i / bufferSize;
+      data[i] = (Math.random() * 2 - 1) * env * env;
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const gain = audioCtx.createGain();
+    gain.gain.value = volume;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 2500;
+    filter.Q.value = 1;
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(bgmGain);
+    noise.start(startTime);
+  }
+
+  function startBGM() {
+    if (!ensureCtx()) return;
+    if (bgmPlaying) return;
+    bgmPlaying = true;
+    bgmBarIndex = 0;
+
+    let nextTime = audioCtx.currentTime + 0.1;
+
+    function schedule() {
+      if (!bgmPlaying) return;
+      while (nextTime < audioCtx.currentTime + 2) {
+        nextTime = scheduleBGMBar(nextTime, bgmBarIndex++);
+      }
+    }
+    schedule();
+    bgmInterval = setInterval(schedule, 1000);
+  }
+
+  function stopBGM() {
+    bgmPlaying = false;
+    if (bgmInterval) {
+      clearInterval(bgmInterval);
+      bgmInterval = null;
+    }
+  }
+
+  // ===== 静音切换 =====
+  function toggleMute() {
+    muted = !muted;
+    localStorage.setItem('mj_muted', muted ? '1' : '0');
+    if (masterGain) {
+      masterGain.gain.setTargetAtTime(muted ? 0 : 0.6, audioCtx.currentTime, 0.05);
+    }
+    return muted;
+  }
+
+  function isMuted() {
+    return muted;
+  }
+
+  // 初始化时从存储读取
+  if (muted) {
+    // 延迟初始化
+  }
+
+  window.SoundFX = {
+    ensureCtx,
+    playClick,
+    playTileSelect,
+    playPlay,
+    playCoin,
+    playError,
+    playWin,
+    startBGM,
+    stopBGM,
+    toggleMute,
+    isMuted,
+  };
+})();
+  </script>
+  <script type="text/babel">
+// ========== 麻将牌组件 ==========
+(function() {
+  const { useState } = React;
+
+  function MahjongTile({ tile, selected, onClick, size = 'normal', inPlay = false }) {
+    const sizeClass = size === 'small' ? 'tile-small' : '';
+    const suitClass = `tile-${tile.suit}`;
+    const selectedClass = selected ? 'selected' : '';
+    const playClass = inPlay ? 'in-play' : '';
+
+    // 获取显示内容
+    const displayValue = getTileDisplay(tile);
+
+    return (
+      <div
+        className={`mahjong-tile ${sizeClass} ${suitClass} ${selectedClass} ${playClass}`}
+        onClick={onClick}
+        data-tile-id={tile.id}
+      >
+        <div className="tile-value">{displayValue.symbol}</div>
+        <div className={`tile-suit ${tile.suit}`}>{displayValue.label}</div>
+      </div>
+    );
+  }
+
+  function getTileDisplay(tile) {
+    switch (tile.suit) {
+      case 'wan':
+        return { symbol: tile.value, label: '万' };
+      case 'tiao':
+        return { symbol: tile.value, label: '条' };
+      case 'tong':
+        return { symbol: tile.value, label: '筒' };
+      case 'feng':
+        return { symbol: tile.value, label: '风' };
+      case 'jian':
+        return { symbol: tile.value, label: '箭' };
+      default:
+        return { symbol: tile.value, label: '' };
+    }
+  }
+
+  Object.assign(window, { MahjongTile });
+})();
+  </script>
+  <script type="text/babel">
+// ========== 小丑牌组件 ==========
+(function() {
+  function JokerCard({ joker, onClick, showPrice = false, disabled = false, small = false }) {
+    const rarityColors = {
+      common: { bg: 'white', fg: 'black', label: '普' },
+      uncommon: { bg: 'var(--pop-green)', fg: 'black', label: '精' },
+      rare: { bg: 'var(--pop-blue)', fg: 'white', label: '稀' },
+      legendary: { bg: 'var(--pop-red)', fg: 'white', label: '传' },
+    };
+
+    const rarity = rarityColors[joker.rarity] || rarityColors.common;
+
+    return (
+      <div
+        className={`joker-card ${disabled ? 'disabled' : ''} ${small ? 'joker-small' : ''}`}
+        onClick={disabled ? undefined : onClick}
+        style={disabled ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+        title={joker.name + ' - ' + joker.desc}
+      >
+        <div className="joker-rarity" style={{ background: rarity.bg, color: rarity.fg }}>
+          {rarity.label}
+        </div>
+        <div className="joker-emoji">{joker.emoji}</div>
+        <div className="joker-name">{joker.name}</div>
+        <div className="joker-effect">{joker.desc}</div>
+        {showPrice && (
+          <div style={{
+            marginTop: '4px',
+            fontSize: '10px',
+            fontWeight: '900',
+            color: 'var(--pop-red)',
+            textTransform: 'uppercase',
+          }}>
+            ${joker.price}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  Object.assign(window, { JokerCard });
+})();
+  </script>
+  <script type="text/babel">
+// ========== 商店组件 ==========
+(function() {
+  const { useState, useEffect } = React;
+
+  function Shop({ money, onBuy, onSell, onReroll, rerollPrice, onClose, availableJokers, ownedJokers, shopDiscount = 0, freeRerolls = 0, sellBonus = 0 }) {
+    const [activeTab, setActiveTab] = useState('jokers');
+    const ownedJokerIds = (ownedJokers || []).map(j => j.id);
+
+    const getPrice = (base) => Math.max(1, base - shopDiscount);
+    const freeRerollText = freeRerolls > 0 && rerollPrice <= 0 ? '免费' : `${rerollPrice}`;
+
+    return (
+      <div className="shop-overlay" onClick={onClose}>
+        <div className="shop-container" onClick={e => e.stopPropagation()}>
+          <div className="shop-header">
+            <div className="shop-title">商 店</div>
+            <button className="shop-close" onClick={() => { window.SoundFX?.playClick(); onClose(); }}>×</button>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '12px',
+              marginTop: '8px',
+              flexWrap: 'wrap',
+            }}>
+              <div className="stat-pill yellow" style={{ fontSize: '11px' }}>
+                💰 <span className="stat-value">${money}</span>
+              </div>
+               <button
+                 className="pop-btn purple btn-small"
+                 onClick={() => { window.SoundFX?.playClick(); onReroll(); }}
+                 disabled={money < rerollPrice}
+                 style={{ fontSize: '11px', padding: '4px 10px', margin: 0 }}
+               >
+                 🔄 重抽 {freeRerollText}
+               </button>
+            </div>
+          </div>
+
+          <div className="shop-tabs">
+            <div
+              className={`shop-tab ${activeTab === 'jokers' ? 'active' : ''}`}
+              onClick={() => { window.SoundFX?.playClick(); setActiveTab('jokers'); }}
+            >
+              购买
+            </div>
+            <div
+              className={`shop-tab ${activeTab === 'owned' ? 'active' : ''}`}
+              onClick={() => { window.SoundFX?.playClick(); setActiveTab('owned'); }}
+            >
+              我的 ({ownedJokers.length})
+            </div>
+            <div
+              className={`shop-tab ${activeTab === 'consumables' ? 'active' : ''}`}
+              onClick={() => { window.SoundFX?.playClick(); setActiveTab('consumables'); }}
+            >
+              消耗品
+            </div>
+            <div
+              className={`shop-tab ${activeTab === 'packs' ? 'active' : ''}`}
+              onClick={() => { window.SoundFX?.playClick(); setActiveTab('packs'); }}
+            >
+              卡包
+            </div>
+          </div>
+
+          <div className="shop-content">
+            {activeTab === 'jokers' && (
+              <div>
+                 {availableJokers.map((joker, idx) => {
+                   const owned = ownedJokerIds.includes(joker.id);
+                   const price = getPrice(joker.price);
+                   const canAfford = money >= price;
+                   return (
+                     <div key={joker.instanceId || idx} className="shop-item">
+                       <div className="shop-item-icon" style={{
+                         background: getRarityBg(joker.rarity),
+                       }}>
+                         {joker.emoji}
+                       </div>
+                       <div className="shop-item-info">
+                         <div className="shop-item-name" style={{
+                           color: getRarityColor(joker.rarity),
+                         }}>
+                           {joker.name}
+                           <span style={{
+                              marginLeft: '8px',
+                              fontSize: '9px',
+                              fontWeight: '900',
+                              padding: '2px 6px',
+                              border: '2px solid var(--pop-ink)',
+                              borderRadius: '9999px',
+                              background: getRarityBg(joker.rarity),
+                              color: getRarityTextColor(joker.rarity),
+                              verticalAlign: 'middle',
+                            }}>
+                              {rarityLabel(joker.rarity)}
+                            </span>
+                         </div>
+                         <div className="shop-item-desc">{joker.desc}</div>
+                       </div>
+                       <button
+                         className="shop-item-buy"
+                         disabled={owned || !canAfford}
+                          onClick={() => { window.SoundFX?.playClick(); onBuy({ ...joker, _displayPrice: price }); }}
+                       >
+                         {owned ? '已拥有' : `$${price}`}
+                       </button>
+                     </div>
+                   );
+                 })}
+                {availableJokers.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '40px 20px', opacity: 0.5 }}>
+                    <div style={{ fontSize: '48px', marginBottom: '8px' }}>🎴</div>
+                    <div style={{ fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                      暂无商品
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'owned' && (
+              <div>
+                {ownedJokers.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: '40px 20px', opacity: 0.5 }}>
+                    <div style={{ fontSize: '48px', marginBottom: '8px' }}>🃏</div>
+                    <div style={{ fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                      还没有小丑牌
+                    </div>
+                  </div>
+                )}
+                {ownedJokers.map((joker, idx) => {
+                   const sellPrice = Math.max(1, Math.floor((joker.price || 4) / 2) * (1 + sellBonus));
+                  return (
+                    <div key={joker.instanceId || idx} className="shop-item">
+                      <div className="shop-item-icon" style={{
+                        background: getRarityBg(joker.rarity),
+                      }}>
+                        {joker.emoji}
+                      </div>
+                      <div className="shop-item-info">
+                        <div className="shop-item-name" style={{
+                          color: getRarityColor(joker.rarity),
+                        }}>
+                          {joker.name}
+                          <span style={{
+                             marginLeft: '8px',
+                             fontSize: '9px',
+                             fontWeight: '900',
+                             padding: '2px 6px',
+                             border: '2px solid var(--pop-ink)',
+                             borderRadius: '9999px',
+                             background: getRarityBg(joker.rarity),
+                             color: getRarityTextColor(joker.rarity),
+                             verticalAlign: 'middle',
+                           }}>
+                             {rarityLabel(joker.rarity)}
+                           </span>
+                        </div>
+                        <div className="shop-item-desc">{joker.desc}</div>
+                      </div>
+                      <button
+                        className="shop-item-buy"
+                        style={{ background: 'var(--pop-red)', color: 'white' }}
+                        onClick={() => { window.SoundFX?.playClick(); onSell(joker); }}
+                      >
+                        出售 ${sellPrice}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {activeTab === 'consumables' && (
+              <div>
+                 {CONSUMABLES.map((item, idx) => {
+                   const price = getPrice(item.price);
+                   const canAfford = money >= price;
+                   return (
+                     <div key={idx} className="shop-item">
+                       <div className="shop-item-icon" style={{ background: 'var(--pop-surface-warm)' }}>
+                         {item.emoji}
+                       </div>
+                       <div className="shop-item-info">
+                         <div className="shop-item-name">{item.name}</div>
+                         <div className="shop-item-desc">{item.desc}</div>
+                       </div>
+                       <button
+                         className="shop-item-buy"
+                         style={{ background: 'var(--pop-blue)', color: 'white' }}
+                         disabled={!canAfford}
+                         onClick={() => { window.SoundFX?.playClick(); onBuy({ ...item, consumable: true, itemId: item.id, instanceId: `c_${Date.now()}_${idx}`, _displayPrice: price }); }}
+                       >
+                         ${price}
+                       </button>
+                     </div>
+                   );
+                 })}
+              </div>
+            )}
+
+            {activeTab === 'packs' && (
+              <div>
+                 {PACKS.map((pack, idx) => {
+                   const price = getPrice(pack.price);
+                   const canAfford = money >= price;
+                   return (
+                     <div key={idx} className="shop-item">
+                       <div className="shop-item-icon" style={{ background: 'var(--pop-yellow)' }}>
+                         {pack.emoji}
+                       </div>
+                       <div className="shop-item-info">
+                         <div className="shop-item-name">{pack.name}</div>
+                         <div className="shop-item-desc">{pack.desc}</div>
+                       </div>
+                       <button
+                         className="shop-item-buy"
+                         style={{ background: 'var(--pop-red)', color: 'white' }}
+                         disabled={!canAfford}
+                         onClick={() => { window.SoundFX?.playClick(); onBuy({ ...pack, pack: true, packId: pack.id, instanceId: `p_${Date.now()}_${idx}`, _displayPrice: price }); }}
+                       >
+                         ${price}
+                       </button>
+                     </div>
+                   );
+                 })}
+              </div>
+            )}
+          </div>
+
+          <div className="shop-footer">
+            <button className="pop-btn green" onClick={() => { window.SoundFX?.playClick(); onClose(); }} style={{ flex: 1 }}>
+              下一关 →
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const CONSUMABLES = [
+    { id: 'con_skip', name: '跳过牌', emoji: '⏭️', desc: '跳过下一个盲注', price: 5 },
+    { id: 'con_reroll', name: '重抽牌', emoji: '🔄', desc: '重抽本回合手牌', price: 3 },
+    { id: 'con_interest', name: '高利贷', emoji: '🏦', desc: '本关结束+5元利息', price: 2 },
+    { id: 'con_heal', name: '续命符', emoji: '❤️', desc: '恢复一条生命', price: 8 },
+  ];
+
+  const PACKS = [
+    { id: 'pack_basic', name: '基础卡包', emoji: '🎁', desc: '随机1张小丑牌', price: 6 },
+    { id: 'pack_mega', name: '豪华卡包', emoji: '🎊', desc: '随机2张小丑牌', price: 12 },
+    { id: 'pack_legend', name: '传说卡包', emoji: '👑', desc: '保底稀有以上', price: 20 },
+  ];
+
+  function getRarityBg(rarity) {
+    const map = {
+      common: 'white',
+      uncommon: 'var(--pop-green)',
+      rare: 'var(--pop-blue)',
+      legendary: 'var(--pop-red)',
+    };
+    return map[rarity] || 'white';
+  }
+
+  function getRarityColor(rarity) {
+    const map = {
+      common: 'black',
+      uncommon: 'green',
+      rare: 'var(--pop-blue)',
+      legendary: 'var(--pop-red)',
+    };
+    return map[rarity] || 'black';
+  }
+
+  function getRarityTextColor(rarity) {
+    const map = {
+      common: 'black',
+      uncommon: 'black',
+      rare: 'white',
+      legendary: 'white',
+    };
+    return map[rarity] || 'black';
+  }
+
+  function rarityLabel(rarity) {
+    const map = {
+      common: '普通',
+      uncommon: '精良',
+      rare: '稀有',
+      legendary: '传说',
+    };
+    return map[rarity] || '普通';
+  }
+
+  Object.assign(window, { Shop, CONSUMABLES, PACKS });
+})();
+  </script>
+  <script type="text/babel">
+// ========== 麻将小丑牌 - 主应用 ==========
+(function() {
+  const { useState, useEffect, useCallback, useMemo, useRef } = React;
+  const {
+    JOKER_CARDS, BLINDS,
+    generateDeck, shuffleDeck,
+    evaluateHand, calculateScore,
+    getRandomJokers,
+  } = window.MahjongGame;
+
+  function App() {
+    const [gameState, setGameState] = useState('start'); // start, playing, shop, blindResult, gameOver, victory
+    const [money, setMoney] = useState(10);
+    const [lives, setLives] = useState(3);
+    const [currentBlindIndex, setCurrentBlindIndex] = useState(0);
+    const [jokers, setJokers] = useState([]);
+    const [deck, setDeck] = useState([]);
+    const [hand, setHand] = useState([]);
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [roundScore, setRoundScore] = useState(0);
+    const [handsRemaining, setHandsRemaining] = useState(4);
+    const [discardsRemaining, setDiscardsRemaining] = useState(3);
+    const [lastScore, setLastScore] = useState(0);
+    const [lastHandResult, setLastHandResult] = useState(null);
+    const [lastScoreDetails, setLastScoreDetails] = useState(null);
+    const [shopJokers, setShopJokers] = useState([]);
+    const [rerollPrice, setRerollPrice] = useState(3);
+    const [toast, setToast] = useState(null);
+    const [comboCount, setComboCount] = useState(0);
+    const [lastHandType, setLastHandType] = useState(null);
+    const [blindResult, setBlindResult] = useState(null);
+    const [activeTab, setActiveTab] = useState('play'); // play, jokers, help
+    const [scoringAnimation, setScoringAnimation] = useState(false);
+    const [helpView, setHelpView] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [muteTick, setMuteTick] = useState(0);
+
+    // 计算小丑提供的额外属性
+    const extraHands = jokers.reduce((s, j) => s + (j.effect?.type === 'extra_hands' ? j.effect.value : 0), 0);
+    const extraDiscards = jokers.reduce((s, j) => s + (j.effect?.type === 'extra_discards' ? j.effect.value : 0), 0);
+    const shopDiscount = jokers.reduce((m, j) => Math.max(m, j.effect?.type === 'shop_discount' ? j.effect.value : 0), 0);
+    const freeRerolls = jokers.reduce((s, j) => s + (j.effect?.type === 'free_reroll' ? j.effect.value : 0), 0);
+    const sellBonus = jokers.reduce((m, j) => Math.max(m, j.effect?.type === 'sell_bonus' ? j.effect.value : 0), 0);
+
+    // 商店显示价格（含折扣）
+    const getDisplayPrice = (basePrice) => Math.max(1, basePrice - shopDiscount);
+
+    const currentBlind = BLINDS[currentBlindIndex];
+    const selectedTiles = useMemo(() =>
+      hand.filter(t => selectedIds.includes(t.id)), [hand, selectedIds]);
+
+    const handResult = useMemo(() =>
+      evaluateHand(selectedTiles), [selectedTiles]);
+
+    const scoreDetails = useMemo(() =>
+      calculateScore(selectedTiles, handResult, jokers, {
+        lastHandType,
+        comboCount,
+        isFirstHand: handsRemaining === (4 + extraHands),
+        isLastHand: handsRemaining === 1,
+        ante: currentBlind?.ante || 1,
+        lives,
+      }),
+      [selectedTiles, handResult, jokers, lastHandType, comboCount, handsRemaining, currentBlind, lives, extraHands]);
+
+    // ========== 显示 Toast ==========
+    const showToast = useCallback((msg) => {
+      setToast(msg);
+      setTimeout(() => setToast(null), 1500);
+    }, []);
+
+    // ========== 开始新游戏 ==========
+    const startGame = useCallback(() => {
+      window.SoundFX?.ensureCtx();
+      window.SoundFX?.startBGM();
+      window.SoundFX?.playClick();
+      const newDeck = shuffleDeck(generateDeck());
+      const initialHand = newDeck.slice(0, 8);
+      setDeck(newDeck.slice(8));
+      setHand(sortHand(initialHand, sortMode));
+      setSelectedIds([]);
+      setMoney(10);
+      setLives(3);
+      setCurrentBlindIndex(0);
+      setJokers([]);
+      setRoundScore(0);
+      setHandsRemaining(4 + extraHands);
+      setDiscardsRemaining(3 + extraDiscards);
+      setComboCount(0);
+      setLastHandType(null);
+      setGameState('playing');
+      setActiveTab('play');
+    }, [sortMode, extraHands, extraDiscards]);
+
+    // ========== 切换牌的选中 ==========
+    const toggleTile = useCallback((tileId) => {
+      setSelectedIds(prev => {
+        if (prev.includes(tileId)) {
+          window.SoundFX?.playTileSelect();
+          return prev.filter(id => id !== tileId);
+        } else {
+          if (prev.length >= 5) {
+            window.SoundFX?.playError();
+            showToast('最多选5张牌');
+            return prev;
+          }
+          window.SoundFX?.playTileSelect();
+          return [...prev, tileId];
+        }
+      });
+    }, [showToast]);
+
+    // ========== 出牌 ==========
+    const playHand = useCallback(() => {
+      if (selectedTiles.length === 0) {
+        window.SoundFX?.playError();
+        showToast('请选择要出的牌');
+        return;
+      }
+      if (handsRemaining <= 0) return;
+
+      window.SoundFX?.playPlay();
+      const result = calculateScore(selectedTiles, handResult, jokers, { lastHandType, comboCount });
+      const newTotal = roundScore + result.total;
+
+      // 连击判断
+      if (lastHandType === handResult.type) {
+        setComboCount(c => c + 1);
+      } else {
+        setComboCount(1);
+      }
+      setLastHandType(handResult.type);
+
+      setLastScore(result.total);
+      setLastHandResult(handResult);
+      setLastScoreDetails(result);
+      setRoundScore(newTotal);
+      setScoringAnimation(true);
+
+      // 从手牌中移除已出的牌
+      const newHand = hand.filter(t => !selectedIds.includes(t.id));
+      // 从牌库抽牌补足
+      const drawCount = Math.min(selectedIds.length, deck.length);
+      const drawn = deck.slice(0, drawCount);
+      setHand(sortHand([...newHand, ...drawn], sortMode));
+      setDeck(deck.slice(drawCount));
+      setSelectedIds([]);
+
+      // 减少出牌次数
+      const newHandsLeft = handsRemaining - 1;
+      setHandsRemaining(newHandsLeft);
+
+      setTimeout(() => {
+        setScoringAnimation(false);
+      }, 600);
+
+      // 检查是否达成目标（达标或用完次数都结算）
+      if (newHandsLeft <= 0 || newTotal >= currentBlind.target) {
+        setTimeout(() => {
+          checkBlindResult(newTotal);
+        }, 500);
+      }
+    }, [selectedTiles, handResult, jokers, roundScore, handsRemaining,
+        deck, hand, selectedIds, lastHandType, comboCount, sortMode, showToast]);
+
+    // ========== 弃牌重抽 ==========
+    const discardAndDraw = useCallback(() => {
+      if (discardsRemaining <= 0) {
+        showToast('没有弃牌次数了');
+        return;
+      }
+      if (selectedIds.length === 0) {
+        showToast('选择要弃掉的牌');
+        return;
+      }
+
+      const discardCount = selectedIds.length;
+      const newHand = hand.filter(t => !selectedIds.includes(t.id));
+      const drawCount = Math.min(discardCount, deck.length);
+      const drawn = deck.slice(0, drawCount);
+      setHand(sortHand([...newHand, ...drawn], sortMode));
+      setDeck(deck.slice(drawCount));
+      setSelectedIds([]);
+      setDiscardsRemaining(d => d - 1);
+      showToast(`弃掉 ${discardCount} 张，抽了 ${drawCount} 张`);
+      window.SoundFX?.playClick();
+
+      // 检查高风险小丑
+      const hasHighRisk = jokers.some(j => j.effect?.type === 'high_risk');
+      if (hasHighRisk) {
+        setDiscardsRemaining(d => Math.max(0, d - 2));
+      }
+    }, [selectedIds, hand, deck, discardsRemaining, jokers, sortMode, showToast]);
+
+    // ========== 检查盲注结果 ==========
+    const checkBlindResult = useCallback((finalScore) => {
+      const won = finalScore >= currentBlind.target;
+      if (won) {
+        window.SoundFX?.playWin();
+      } else {
+        window.SoundFX?.playError();
+      }
+      setBlindResult({
+        won,
+        score: finalScore,
+        target: currentBlind.target,
+        remainingBonus: won ? (handsRemaining + discardsRemaining) : 0,
+      });
+      setGameState('blindResult');
+    }, [currentBlind, handsRemaining, discardsRemaining]);
+
+    // ========== 盲注结算后继续 ==========
+    const continueAfterBlind = useCallback(() => {
+      if (blindResult.won) {
+        // 基础奖励
+        const baseReward = blindResult.score >= currentBlind.target * 1.5 ? 8 : 5;
+        // 剩余次数奖励（出牌 + 弃牌）1:1
+        const remainingReward = blindResult.remainingBonus || 0;
+        setMoney(m => m + baseReward + remainingReward);
+
+        if (currentBlindIndex >= BLINDS.length - 1) {
+          // 通关
+          setGameState('victory');
+          return;
+        }
+        // 下一关
+        setCurrentBlindIndex(i => i + 1);
+        // 进商店
+        setShopJokers(getRandomJokers(4, jokers.map(j => j.id)));
+        setRerollPrice(Math.max(0, 3 - freeRerolls));
+        setGameState('shop');
+      } else {
+        // 输一条命
+        const newLives = lives - 1;
+        setLives(newLives);
+        if (newLives <= 0) {
+          setGameState('gameOver');
+        } else {
+          // 继续下一个盲注
+          if (currentBlindIndex >= BLINDS.length - 1) {
+            setGameState('gameOver');
+            return;
+          }
+          setCurrentBlindIndex(i => i + 1);
+          setShopJokers(getRandomJokers(4, jokers.map(j => j.id)));
+          setRerollPrice(Math.max(0, 3 - freeRerolls));
+          setGameState('shop');
+        }
+      }
+    }, [blindResult, currentBlind, currentBlindIndex, lives]);
+
+    // ========== 离开商店进入下一关 ==========
+    const leaveShop = useCallback(() => {
+      // 商店结束经济效果
+      let bonus = 0;
+      jokers.forEach(j => {
+        if (j.effect?.type === 'shop_end_money') bonus += j.effect.value;
+        if (j.effect?.type === 'shop_end_interest') {
+          bonus += Math.floor((money + bonus) * j.effect.value);
+        }
+      });
+      if (bonus > 0) {
+        setMoney(m => m + bonus);
+        showToast(`商店利息 +${bonus}`);
+      }
+      // 重置本关状态
+      const newDeck = shuffleDeck(generateDeck());
+      const initialHand = newDeck.slice(0, 8);
+      setDeck(newDeck.slice(8));
+      setHand(sortHand(initialHand, sortMode));
+      setSelectedIds([]);
+      setRoundScore(0);
+      setHandsRemaining(4 + extraHands);
+      setDiscardsRemaining(3 + extraDiscards);
+      setComboCount(0);
+      setLastHandType(null);
+      setBlindResult(null);
+      setGameState('playing');
+    }, [extraHands, extraDiscards, sortMode, jokers, money, showToast]);
+
+    // ========== 购买小丑牌 ==========
+    const buyJoker = useCallback((item) => {
+      const price = item._displayPrice != null ? item._displayPrice : item.price;
+      if (money < price) return;
+
+      if (item.consumable) {
+        // 消耗品
+        setMoney(m => m - price);
+        if (item.itemId === 'con_heal') {
+          setLives(l => Math.min(l + 1, 5));
+          showToast('恢复一条生命！');
+        } else if (item.itemId === 'con_reroll') {
+          // 重抽当前手牌
+          const newDeck = shuffleDeck(generateDeck());
+          setHand(newDeck.slice(0, 8));
+          setDeck(newDeck.slice(8));
+          setSelectedIds([]);
+          showToast('手牌已重抽！');
+        } else if (item.itemId === 'con_interest') {
+          setMoney(m => m + 5);
+          showToast('获得 $5 利息！');
+        } else {
+          showToast('购买成功！');
+        }
+        return;
+      }
+
+      if (item.pack) {
+        setMoney(m => m - price);
+        // 开卡包
+        const count = item.packId === 'pack_mega' ? 2 : 1;
+        const rarityFilter = item.packId === 'pack_legend'
+          ? j => j.rarity !== 'common'
+          : null;
+        let pool = rarityFilter ? JOKER_CARDS.filter(rarityFilter) : JOKER_CARDS;
+        // 从池子里随机
+        const newJokers = [];
+        for (let i = 0; i < count; i++) {
+          const j = pool[Math.floor(Math.random() * pool.length)];
+          newJokers.push({ ...j, instanceId: `pk_${Date.now()}_${i}_${Math.random().toString(36).slice(2,6)}` });
+        }
+        setJokers(prev => [...prev, ...newJokers].slice(0, 8));
+        showToast(`获得 ${count} 张小丑牌！`);
+        return;
+      }
+
+      // 小丑牌
+      if (jokers.length >= 8) {
+        showToast('小丑槽已满（8个）');
+        return;
+      }
+      if (jokers.some(j => j.id === item.id)) {
+        showToast('已拥有此小丑');
+        return;
+      }
+      setMoney(m => m - price);
+      setJokers(prev => [...prev, { ...item, instanceId: `b_${Date.now()}` }]);
+      showToast(`购买了 ${item.name}！`);
+      window.SoundFX?.playCoin();
+    }, [money, jokers, showToast]);
+
+    // ========== 出售小丑牌 ==========
+    const sellJoker = useCallback((joker) => {
+      const basePrice = Math.max(1, Math.floor((joker.price || 4) / 2));
+      const sellPrice = Math.max(1, Math.floor(basePrice * (1 + sellBonus)));
+      setJokers(prev => prev.filter(j => j.instanceId !== joker.instanceId));
+      setMoney(m => m + sellPrice);
+      showToast(`出售了 ${joker.name}，获得 ${sellPrice}`);
+      window.SoundFX?.playCoin();
+    }, [showToast, sellBonus]);
+
+    // ========== 商店重抽 ==========
+    const rerollShop = useCallback(() => {
+      if (money < rerollPrice) {
+        showToast('金币不足');
+        return;
+      }
+      setMoney(m => m - rerollPrice);
+      setShopJokers(getRandomJokers(4, jokers.map(j => j.id)));
+      setRerollPrice(p => p + 1);
+      showToast('重新刷新了奖池！');
+      window.SoundFX?.playClick();
+      window.SoundFX?.playClick();
+    }, [money, rerollPrice, showToast]);
+    const [sortMode, setSortMode] = useState('suit'); // suit | value
+
+    // ========== 排序工具 ==========
+    const suitOrder = { wan: 0, tiao: 1, tong: 2, feng: 3, jian: 4 };
+    const sortHand = (tiles, mode) => {
+      const arr = [...tiles];
+      if (mode === 'value') {
+        arr.sort((a, b) => {
+          const av = typeof a.value === 'number' ? a.value : 100;
+          const bv = typeof b.value === 'number' ? b.value : 100;
+          if (av !== bv) return av - bv;
+          return suitOrder[a.suit] - suitOrder[b.suit];
+        });
+      } else {
+        arr.sort((a, b) => {
+          if (suitOrder[a.suit] !== suitOrder[b.suit]) return suitOrder[a.suit] - suitOrder[b.suit];
+          const av = typeof a.value === 'number' ? a.value : 100;
+          const bv = typeof b.value === 'number' ? b.value : 100;
+          return av - bv;
+        });
+      }
+      return arr;
+    };
+
+    const sortBySuit = () => {
+      setSortMode('suit');
+      setHand(sortHand(hand, 'suit'));
+    };
+
+    const sortByValue = () => {
+      setSortMode('value');
+      setHand(sortHand(hand, 'value'));
+    };
+
+    if (gameState === 'start') {
+      return (
+        <div className="screen-overlay">
+          <div className="screen-content">
+            {/* 波普色块标题 */}
+            <div style={{
+              position: 'relative',
+              marginBottom: '24px',
+            }}>
+              <div style={{
+                display: 'inline-block',
+                background: 'var(--pop-ink)',
+                color: 'var(--pop-yellow)',
+                padding: '12px 28px',
+                border: '5px solid var(--pop-ink)',
+                boxShadow: '6px 6px 0 0 var(--pop-red)',
+                transform: 'rotate(-2deg)',
+                marginLeft: '-8px',
+              }}>
+                <span className="pop-font" style={{
+                  fontSize: '42px',
+                  fontWeight: '900',
+                  lineHeight: 1,
+                  letterSpacing: '0.05em',
+                  display: 'block',
+                  fontFamily: '"Noto Sans SC", sans-serif',
+                }}>麻 将</span>
+              </div>
+              <div style={{
+                display: 'inline-block',
+                background: 'var(--pop-red)',
+                color: 'white',
+                padding: '12px 28px',
+                border: '5px solid var(--pop-ink)',
+                boxShadow: '6px 6px 0 0 var(--pop-ink)',
+                transform: 'rotate(2deg)',
+                marginTop: '4px',
+                marginLeft: '8px',
+              }}>
+                <span className="pop-font" style={{
+                  fontSize: '42px',
+                  fontWeight: '900',
+                  lineHeight: 1,
+                  letterSpacing: '0.05em',
+                  display: 'block',
+                  fontFamily: '"Noto Sans SC", sans-serif',
+                }}>小 丑 牌</span>
+              </div>
+            </div>
+
+            <div className="screen-subtitle">MAHJONG JOKER · 波普风</div>
+
+            {/* 波普风格麻将牌展示（统一描边风格） */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '12px',
+              marginBottom: '32px',
+              transform: 'rotate(-2deg)',
+            }}>
+              <StartTile value="中" suit="jian" />
+              <StartTile value="发" suit="jian" styleOverride={{ transform: 'translateY(-12px) rotate(3deg)' }} />
+              <StartTile value="白" suit="jian" />
+            </div>
+
+            <button className="screen-btn green" onClick={() => { window.SoundFX?.playClick(); startGame(); }}>
+              开 始 游 戏
+            </button>
+            <button className="screen-btn blue" onClick={() => {
+            window.SoundFX?.ensureCtx();
+            window.SoundFX?.startBGM();
+            window.SoundFX?.playClick();
+            setHelpView(true);
+          }}>
+              游 戏 说 明
+            </button>
+          </div>
+
+          {helpView && <HelpModal onClose={() => setHelpView(false)} />}
+
+        </div>
+      );
+    }
+
+    // ========== 渲染游戏结束 ==========
+    if (gameState === 'gameOver') {
+      return (
+        <div className="screen-overlay" style={{ background: 'var(--pop-red)' }}>
+          <div className="screen-content">
+            <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+              <span className="pop-font" style={{
+                display: 'inline-block',
+                fontSize: '44px',
+                fontWeight: '400',
+                color: 'white',
+                background: 'var(--pop-ink)',
+                padding: '8px 24px',
+                border: '5px solid var(--pop-ink)',
+                boxShadow: '5px 5px 0 0 var(--pop-yellow)',
+                transform: 'rotate(-2deg)',
+              }}>游戏结束</span>
+            </div>
+            <div className="screen-subtitle" style={{ color: 'white', opacity: 0.9 }}>
+              GAME OVER
+            </div>
+
+            <div className="result-stats">
+              <div className="result-stat">
+                <span className="result-stat-label">到达关卡</span>
+                <span className="result-stat-value">{currentBlindIndex + 1} / {BLINDS.length}</span>
+              </div>
+              <div className="result-stat">
+                <span className="result-stat-label">本局得分</span>
+                <span className="result-stat-value">{roundScore}</span>
+              </div>
+              <div className="result-stat">
+                <span className="result-stat-label">拥有金钱</span>
+                <span className="result-stat-value">${money}</span>
+              </div>
+              <div className="result-stat">
+                <span className="result-stat-label">小丑数量</span>
+                <span className="result-stat-value">{jokers.length}</span>
+              </div>
+            </div>
+
+            <button className="screen-btn yellow" onClick={() => { window.SoundFX?.playClick(); startGame(); }}
+              style={{ background: 'var(--pop-button-yellow)' }}>
+              再 来 一 局
+            </button>
+            <button className="screen-btn black" onClick={() => { window.SoundFX?.playClick(); setGameState('start'); }}
+              style={{ background: 'black', color: 'white' }}>
+              返 回 主 菜 单
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ========== 渲染胜利界面 ==========
+    if (gameState === 'victory') {
+      return (
+        <div className="screen-overlay" style={{ background: 'var(--pop-green)' }}>
+          <div className="screen-content">
+            <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+              <span className="pop-font" style={{
+                display: 'inline-block',
+                fontSize: '44px',
+                fontWeight: '400',
+                color: 'var(--pop-yellow)',
+                background: 'var(--pop-ink)',
+                padding: '8px 24px',
+                border: '5px solid var(--pop-ink)',
+                boxShadow: '5px 5px 0 0 var(--pop-red)',
+                transform: 'rotate(-2deg)',
+              }}>通关啦！</span>
+              <br />
+              <span className="pop-font" style={{
+                display: 'inline-block',
+                fontSize: '28px',
+                fontWeight: '400',
+                color: 'white',
+                background: 'var(--pop-red)',
+                padding: '4px 16px',
+                border: '4px solid var(--pop-ink)',
+                boxShadow: '4px 4px 0 0 var(--pop-ink)',
+                transform: 'rotate(1deg)',
+                marginTop: '8px',
+              }}>VICTORY</span>
+            </div>
+            <div className="screen-subtitle">恭喜通过 10 个回合的所有挑战！</div>
+
+            <div className="result-stats">
+              <div className="result-stat">
+                <span className="result-stat-label">最终分数</span>
+                <span className="result-stat-value">{roundScore}</span>
+              </div>
+              <div className="result-stat">
+                <span className="result-stat-label">剩余生命</span>
+                <span className="result-stat-value">{'❤️'.repeat(lives)}</span>
+              </div>
+              <div className="result-stat">
+                <span className="result-stat-label">金钱</span>
+                <span className="result-stat-value">${money}</span>
+              </div>
+              <div className="result-stat">
+                <span className="result-stat-label">收集小丑</span>
+                <span className="result-stat-value">{jokers.length} 张</span>
+              </div>
+            </div>
+
+            <button className="screen-btn red" onClick={() => { window.SoundFX?.playClick(); startGame(); }}>
+              再 来 一 局
+            </button>
+            <button className="screen-btn white" onClick={() => { window.SoundFX?.playClick(); setGameState('start'); }}
+              style={{ background: 'white', color: 'black' }}>
+              返 回 主 菜 单
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ========== 渲染主游戏界面 ==========
+    return (
+      <div className="game-container">
+        <div className="halftone-bg"></div>
+
+        {/* 全局确认弹窗 */}
+        {showConfirm && (
+          <ConfirmModal
+            title="返回首页"
+            message="确定要返回首页吗？当前进度将丢失。"
+            confirmText="返 回"
+            cancelText="取 消"
+            onConfirm={() => {
+              setShowConfirm(false);
+              setGameState('start');
+              window.SoundFX?.playClick();
+            }}
+            onCancel={() => {
+              setShowConfirm(false);
+              window.SoundFX?.playClick();
+            }}
+          />
+        )}
+
+        {/* 顶部状态栏 */}
+        <div className="top-bar">
+          <div className="top-bar-row">
+            <button
+              className="back-home-btn"
+              onClick={() => {
+                window.SoundFX?.playClick();
+                setShowConfirm(true);
+              }}
+              title="返回首页"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <div className="stat-pill red">
+              <span>❤️</span>
+              <span className="stat-value">{lives}</span>
+            </div>
+            <div className="stat-pill yellow">
+              <span>💰</span>
+              <span className="stat-value">${money}</span>
+            </div>
+            <div className="stat-pill green">
+              <span>🃏</span>
+              <span className="stat-value">{jokers.length}/8</span>
+            </div>
+            <button
+              className="sound-toggle-btn"
+              onClick={() => {
+                window.SoundFX?.playClick();
+                const muted = window.SoundFX?.toggleMute();
+                if (!muted) {
+                  window.SoundFX?.startBGM();
+                } else {
+                  window.SoundFX?.stopBGM();
+                }
+                // 强制重渲染
+                setMuteTick(t => t + 1);
+              }}
+              title="静音切换"
+            >
+              {window.SoundFX?.isMuted() ? (
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <line x1="23" y1="9" x2="17" y2="15" />
+                  <line x1="17" y1="9" x2="23" y2="15" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                </svg>
+              )}
+            </button>
+          </div>
+          <div className="game-title pop-font">{currentBlind.name}</div>
+          <div className="game-subtitle">回合 {currentBlind.ante} / 10</div>
+          <div className="blind-bar">
+            <div className="blind-track">
+              <div
+                className="blind-fill"
+                style={{
+                  width: `${Math.min(100, (roundScore / currentBlind.target) * 100)}%`,
+                  background: roundScore >= currentBlind.target ? 'var(--pop-green)' : 'var(--pop-yellow)',
+                }}
+              />
+              <span className="blind-label">
+                {roundScore} / {currentBlind.target}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* 主游戏区 */}
+        <div className="game-main">
+          {activeTab === 'play' && (
+            <>
+              {/* 小丑牌区 */}
+              <div className="jokers-section">
+                <div className="section-label">
+                  小丑牌 ({jokers.length}/8)
+                </div>
+                <div className="jokers-row">
+                  {jokers.map(joker => (
+                    <JokerCard key={joker.instanceId} joker={joker} small />
+                  ))}
+                  {jokers.length === 0 && (
+                    <div className="joker-slot">+</div>
+                  )}
+                </div>
+              </div>
+
+              {/* 出牌区 */}
+              <div className={`play-area ${scoringAnimation ? 'scoring' : ''}`}>
+                <div className="play-area-title">出 牌 区</div>
+                <div className="play-tiles">
+                  {selectedTiles.length > 0 ? (
+                    selectedTiles.map(tile => (
+                      <MahjongTile
+                        key={tile.id}
+                        tile={tile}
+                        inPlay
+                        onClick={() => toggleTile(tile.id)}
+                      />
+                    ))
+                  ) : (
+                    <div style={{
+                      fontSize: '11px',
+                      fontWeight: '900',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.15em',
+                      opacity: 0.4,
+                    }}>
+                      从手牌选择 1-5 张
+                    </div>
+                  )}
+                </div>
+
+                {selectedTiles.length > 0 && (
+                  <div className={`hand-type-result ${handResult && handResult.type && handResult.type !== 'none' && handResult.type !== 'single' && handResult.type !== 'san-pai' ? 'has-type' : 'no-type'}`}>
+                    {handResult && handResult.type && handResult.type !== 'none'
+                      ? <>
+                          <span className="ht-name">{handResult.name}</span>
+                          <span className="score-pop">×{scoreDetails.multiplier}</span>
+                          <span className="ht-count">{selectedTiles.length}张</span>
+                        </>
+                      : <span className="ht-name">选牌中…</span>
+                    }
+                  </div>
+                )}
+              </div>
+
+              {/* 手牌区 */}
+              <div className="hand-section">
+                <div className="section-label">
+                  手牌 · {hand.length} 张
+                </div>
+                <div className="hand-tiles">
+                  {hand.map(tile => (
+                    <MahjongTile
+                      key={tile.id}
+                      tile={tile}
+                      selected={selectedIds.includes(tile.id)}
+                      onClick={() => toggleTile(tile.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {activeTab === 'jokers' && (
+            <JokersView jokers={jokers} />
+          )}
+
+          {activeTab === 'help' && (
+            <HelpView />
+          )}
+        </div>
+
+        {/* 操作按钮区 */}
+        {activeTab === 'play' && gameState === 'playing' && (
+          <div className="action-bar">
+            <button
+              className="pop-btn blue btn-small"
+              onClick={discardAndDraw}
+              disabled={discardsRemaining <= 0 || selectedIds.length === 0}
+            >
+              弃牌 ({discardsRemaining})
+            </button>
+            <div style={{
+              display: 'flex',
+              background: 'rgba(0,0,0,0.1)',
+              border: '2.5px solid var(--pop-ink)',
+              borderRadius: '9999px',
+              padding: '3px',
+              boxShadow: '2px 2px 0 0 var(--pop-ink)',
+              overflow: 'hidden',
+            }}>
+              <button
+                onClick={() => { window.SoundFX?.playClick(); sortBySuit(); }}
+                style={{
+                  flex: 1,
+                  padding: '4px 12px',
+                  fontSize: '11px',
+                  fontWeight: '900',
+                  border: 'none',
+                  borderRadius: '9999px',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  letterSpacing: '0.05em',
+                  transition: 'all 0.15s ease',
+                  background: sortMode === 'suit' ? 'var(--pop-red)' : 'transparent',
+                  color: sortMode === 'suit' ? 'white' : 'var(--pop-ink)',
+                  boxShadow: sortMode === 'suit' ? 'inset 0 -2px 0 rgba(0,0,0,0.25)' : 'none',
+                }}
+                title="按花色排序"
+              >
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', marginRight: '4px' }}>
+                  <path d="M3 7h13" />
+                  <path d="M3 12h9" />
+                  <path d="M3 17h5" />
+                </svg>
+                花色
+              </button>
+              <button
+                onClick={() => { window.SoundFX?.playClick(); sortByValue(); }}
+                style={{
+                  flex: 1,
+                  padding: '4px 12px',
+                  fontSize: '11px',
+                  fontWeight: '900',
+                  border: 'none',
+                  borderRadius: '9999px',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  letterSpacing: '0.05em',
+                  transition: 'all 0.15s ease',
+                  background: sortMode === 'value' ? 'var(--pop-red)' : 'transparent',
+                  color: sortMode === 'value' ? 'white' : 'var(--pop-ink)',
+                  boxShadow: sortMode === 'value' ? 'inset 0 -2px 0 rgba(0,0,0,0.25)' : 'none',
+                }}
+                title="按数字排序"
+              >
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', marginRight: '4px' }}>
+                  <path d="M4 18V6" />
+                  <path d="M8 18V4" />
+                  <path d="M12 18V8" />
+                  <path d="M16 18V10" />
+                </svg>
+                大小
+              </button>
+            </div>
+            <button
+              className="pop-btn green"
+              onClick={playHand}
+              disabled={handsRemaining <= 0 || selectedTiles.length === 0}
+            >
+              出牌 ({handsRemaining})
+            </button>
+          </div>
+        )}
+
+        {/* 底部导航 */}
+        <div className="bottom-nav">
+          <div
+            className={`bottom-nav-item ${activeTab === 'play' ? 'active' : ''}`}
+            onClick={() => { window.SoundFX?.playClick(); setActiveTab('play'); }}
+          >
+            <span className="bottom-nav-icon">🎴</span>
+            <span>出牌</span>
+          </div>
+          <div
+            className={`bottom-nav-item ${activeTab === 'jokers' ? 'active' : ''}`}
+            onClick={() => { window.SoundFX?.playClick(); setActiveTab('jokers'); }}
+          >
+            <span className="bottom-nav-icon">🃏</span>
+            <span>小丑</span>
+          </div>
+          <div
+            className={`bottom-nav-item ${activeTab === 'help' ? 'active' : ''}`}
+            onClick={() => { window.SoundFX?.playClick(); setActiveTab('help'); }}
+          >
+            <span className="bottom-nav-icon">📖</span>
+            <span>牌谱</span>
+          </div>
+        </div>
+
+        {/* 商店 */}
+        {gameState === 'shop' && (
+          <Shop
+            money={money}
+            onBuy={buyJoker}
+            onSell={sellJoker}
+            onReroll={rerollShop}
+            rerollPrice={rerollPrice}
+            onClose={leaveShop}
+            availableJokers={shopJokers}
+            ownedJokers={jokers}
+            shopDiscount={shopDiscount}
+            freeRerolls={freeRerolls}
+          />
+        )}
+
+        {/* 盲注结算 */}
+        {gameState === 'blindResult' && blindResult && (
+          <div className="blind-result">
+            <div className="blind-result-card">
+              <div className={`blind-result-title ${blindResult.won ? 'win' : 'lose'}`}>
+                {blindResult.won ? '胜利！' : '失败...'}
+              </div>
+              <div className="blind-result-sub">
+                {currentBlind.name}
+              </div>
+              <div className="blind-result-score">
+                <div className="blind-result-score-row">
+                  <span>你的分数</span>
+                  <span className="val">{blindResult.score}</span>
+                </div>
+                <div className="blind-result-score-row">
+                  <span>目标分数</span>
+                  <span className="val" style={{ color: 'var(--pop-blue)' }}>{blindResult.target}</span>
+                </div>
+                {blindResult.won && (
+                  <div style={{
+                    borderTop: '3px dashed rgba(0,0,0,0.1)',
+                    paddingTop: '8px',
+                    marginTop: '4px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                  }}>
+                    <div className="blind-result-score-row">
+                      <span>通关奖励</span>
+                      <span className="val" style={{ color: 'var(--pop-green)' }}>
+                        +${blindResult.score >= blindResult.target * 1.5 ? 8 : 5}
+                      </span>
+                    </div>
+                    {blindResult.remainingBonus > 0 && (
+                      <div className="blind-result-score-row">
+                        <span>剩余次数奖励</span>
+                        <span className="val" style={{ color: 'var(--pop-green)' }}>
+                          +${blindResult.remainingBonus}
+                        </span>
+                      </div>
+                    )}
+                    <div className="blind-result-score-row" style={{
+                      borderTop: '2px solid rgba(0,0,0,0.15)',
+                      paddingTop: '4px',
+                      marginTop: '2px',
+                      fontWeight: '900',
+                    }}>
+                      <span>合计</span>
+                      <span className="val" style={{ color: 'var(--pop-red)' }}>
+                        +${(blindResult.score >= blindResult.target * 1.5 ? 8 : 5) + (blindResult.remainingBonus || 0)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {!blindResult.won && (
+                  <div className="blind-result-score-row" style={{
+                    borderTop: '3px dashed rgba(0,0,0,0.1)',
+                    paddingTop: '8px',
+                    marginTop: '4px',
+                  }}>
+                    <span>失去生命</span>
+                    <span className="val" style={{ color: 'var(--pop-red)' }}>-1 ❤️</span>
+                  </div>
+                )}
+              </div>
+              <button
+                className="pop-btn yellow"
+                onClick={() => { window.SoundFX?.playClick(); continueAfterBlind(); }}
+                style={{ width: '100%' }}
+              >
+                {blindResult.won ? '前往商店' : '继续挑战'}
+              </button>
+            </div>
+          </div>
+        )}
+
+
+        {/* Toast 提示 */}
+        {toast && <div className="float-toast">{toast}</div>}
+      </div>
+    );
+  }
+
+  // ========== 小丑牌列表 ==========
+  function JokersView({ jokers }) {
+    if (jokers.length === 0) {
+      return (
+        <div style={{
+          textAlign: 'center',
+          padding: '40px 20px',
+          opacity: 0.5,
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: '12px' }}>🃏</div>
+          <div style={{ fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            还没有小丑牌
+          </div>
+          <div style={{ fontSize: '11px', marginTop: '4px', fontWeight: '700', opacity: 0.7 }}>
+            在商店购买获得
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        <div className="section-label">我的小丑牌</div>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: '10px',
+        }}>
+          {jokers.map(joker => (
+            <div key={joker.instanceId} style={{
+              background: 'white',
+              border: '4px solid var(--pop-ink)',
+              borderRadius: '1rem',
+              padding: '12px',
+              boxShadow: '4px 4px 0 0 var(--pop-ink)',
+              textAlign: 'center',
+            }}>
+              <div style={{ fontSize: '36px', marginBottom: '4px' }}>{joker.emoji}</div>
+              <div style={{
+                fontSize: '13px',
+                fontWeight: '900',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                marginBottom: '4px',
+                color: getRarityTextColor(joker.rarity),
+              }}>
+                {joker.name}
+              </div>
+              <div style={{
+                fontSize: '10px',
+                fontWeight: '700',
+                opacity: 0.7,
+                lineHeight: 1.3,
+              }}>
+                {joker.desc}
+              </div>
+              <div style={{
+                display: 'inline-block',
+                marginTop: '6px',
+                padding: '2px 8px',
+                border: '2px solid var(--pop-ink)',
+                borderRadius: '9999px',
+                fontSize: '9px',
+                fontWeight: '900',
+                textTransform: 'uppercase',
+                background: getRarityBg(joker.rarity),
+                color: getRarityFg(joker.rarity),
+              }}>
+                {rarityLabel(joker.rarity)}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ========== 帮助/牌谱 ==========
+  function HelpView() {
+    const [expanded, setExpanded] = useState(null);
+
+    const ranks = [
+      {
+        name: '字一色四杠', mult: '×20', base: '200', rank: '1',
+        desc: '5张全是字牌，且有4张完全相同',
+        tiles: [
+          { suit: 'jian', value: '中', display: '中' },
+          { suit: 'jian', value: '中', display: '中' },
+          { suit: 'jian', value: '中', display: '中' },
+          { suit: 'jian', value: '中', display: '中' },
+          { suit: 'jian', value: '发', display: '发' },
+        ],
+      },
+      {
+        name: '字一色葫芦', mult: '×15', base: '150', rank: '2',
+        desc: '5张全是字牌，3张相同 + 2张相同',
+        tiles: [
+          { suit: 'jian', value: '中', display: '中' },
+          { suit: 'jian', value: '中', display: '中' },
+          { suit: 'jian', value: '中', display: '中' },
+          { suit: 'jian', value: '发', display: '发' },
+          { suit: 'jian', value: '发', display: '发' },
+        ],
+      },
+      {
+        name: '字一色', mult: '×10', base: '100', rank: '3',
+        desc: '5张全是字牌（风牌/箭牌）',
+        tiles: [
+          { suit: 'feng', value: '东', display: '东' },
+          { suit: 'feng', value: '南', display: '南' },
+          { suit: 'jian', value: '中', display: '中' },
+          { suit: 'jian', value: '发', display: '发' },
+          { suit: 'jian', value: '白', display: '白' },
+        ],
+      },
+      {
+        name: '清龙', mult: '×10', base: '100', rank: '4',
+        desc: '同花色的5张连续数字',
+        tiles: [
+          { suit: 'wan', value: 1, display: '1万' },
+          { suit: 'wan', value: 2, display: '2万' },
+          { suit: 'wan', value: 3, display: '3万' },
+          { suit: 'wan', value: 4, display: '4万' },
+          { suit: 'wan', value: 5, display: '5万' },
+        ],
+      },
+      {
+        name: '四杠', mult: '×12', base: '120', rank: '5',
+        desc: '4张完全相同的牌（类似扑克四条）',
+        tiles: [
+          { suit: 'wan', value: 3, display: '3万' },
+          { suit: 'wan', value: 3, display: '3万' },
+          { suit: 'wan', value: 3, display: '3万' },
+          { suit: 'wan', value: 3, display: '3万' },
+          { suit: 'tiao', value: 5, display: '5条' },
+        ],
+      },
+      {
+        name: '清一色', mult: '×7', base: '70', rank: '6',
+        desc: '5张数字牌全是同一花色',
+        tiles: [
+          { suit: 'tong', value: 2, display: '2筒' },
+          { suit: 'tong', value: 5, display: '5筒' },
+          { suit: 'tong', value: 6, display: '6筒' },
+          { suit: 'tong', value: 8, display: '8筒' },
+          { suit: 'tong', value: 9, display: '9筒' },
+        ],
+      },
+      {
+        name: '葫芦', mult: '×6', base: '60', rank: '7',
+        desc: '3张相同 + 2张相同（类似扑克Full House）',
+        tiles: [
+          { suit: 'tong', value: 2, display: '2筒' },
+          { suit: 'tong', value: 2, display: '2筒' },
+          { suit: 'tong', value: 2, display: '2筒' },
+          { suit: 'wan', value: 5, display: '5万' },
+          { suit: 'wan', value: 5, display: '5万' },
+        ],
+      },
+      {
+        name: '三刻', mult: '×4', base: '30', rank: '8',
+        desc: '3张完全相同的牌（类似扑克三条）',
+        tiles: [
+          { suit: 'tiao', value: 7, display: '7条' },
+          { suit: 'tiao', value: 7, display: '7条' },
+          { suit: 'tiao', value: 7, display: '7条' },
+          { suit: 'wan', value: 3, display: '3万' },
+          { suit: 'tong', value: 8, display: '8筒' },
+        ],
+      },
+      {
+        name: '两对', mult: '×3', base: '20', rank: '9',
+        desc: '两对不同的对子（类似扑克两对）',
+        tiles: [
+          { suit: 'wan', value: 3, display: '3万' },
+          { suit: 'wan', value: 3, display: '3万' },
+          { suit: 'tong', value: 8, display: '8筒' },
+          { suit: 'tong', value: 8, display: '8筒' },
+          { suit: 'tiao', value: 5, display: '5条' },
+        ],
+      },
+      {
+        name: '一对', mult: '×2', base: '10', rank: '10',
+        desc: '2张完全相同的牌（类似扑克一对）',
+        tiles: [
+          { suit: 'wan', value: 5, display: '5万' },
+          { suit: 'wan', value: 5, display: '5万' },
+          { suit: 'tiao', value: 3, display: '3条' },
+          { suit: 'tong', value: 7, display: '7筒' },
+          { suit: 'feng', value: '东', display: '东' },
+        ],
+      },
+      {
+        name: '散牌', mult: '×1', base: '5', rank: '11',
+        desc: '凑不出任何牌型的杂牌',
+        tiles: [
+          { suit: 'wan', value: 1, display: '1万' },
+          { suit: 'tiao', value: 3, display: '3条' },
+          { suit: 'tong', value: 5, display: '5筒' },
+          { suit: 'feng', value: '东', display: '东' },
+          { suit: 'jian', value: '中', display: '中' },
+        ],
+      },
+    ];
+
+    const toggleExpand = (idx) => {
+      setExpanded(expanded === idx ? null : idx);
+    };
+
+    return (
+      <div>
+        <div className="section-label">麻将牌型 · 点击看说明</div>
+        <div className="hand-rank-list">
+          {ranks.map((r, i) => (
+            <div key={i}>
+              <div
+                className={`hand-rank-item ${expanded === i ? 'expanded' : ''}`}
+                onClick={() => { window.SoundFX?.playClick(); toggleExpand(i); }}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className="rank-name">
+                  <span className="rank-num">{r.rank}</span>
+                  <span>{r.name}</span>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '10px', opacity: 0.6 }}>{r.base}分</span>
+                  <span className="rank-mult">{r.mult}</span>
+                  <span style={{
+                    fontSize: '14px',
+                    fontWeight: '900',
+                    transition: 'transform 0.2s',
+                    transform: expanded === i ? 'rotate(180deg)' : 'rotate(0deg)',
+                  }}>▼</span>
+                </div>
+              </div>
+              {expanded === i && (
+                <div style={{
+                  padding: '10px 12px 12px',
+                  marginTop: '-6px',
+                  background: 'white',
+                  border: '3px solid var(--pop-ink)',
+                  borderTop: 'none',
+                  borderRadius: '0 0 8px 8px',
+                  boxShadow: '3px 3px 0 0 var(--pop-ink)',
+                  animation: 'handExpand 0.25s var(--pop-easing)',
+                  transformOrigin: 'top center',
+                }}>
+                  {/* 示例牌面 */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: '4px',
+                    marginBottom: '8px',
+                  }}>
+                    {r.tiles.map((t, ti) => (
+                      <div
+                        key={ti}
+                        className={`tile-${t.suit}`}
+                        style={{
+                          width: '32px',
+                          height: '44px',
+                          background: 'var(--pop-surface)',
+                          border: '3px solid var(--pop-ink)',
+                          borderRadius: '6px',
+                          boxShadow: '2px 2px 0 0 var(--pop-ink)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          position: 'relative',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <div style={{
+                          position: 'absolute',
+                          inset: 0,
+                          backgroundImage: 'radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px)',
+                          backgroundSize: '6px 6px',
+                          pointerEvents: 'none',
+                        }} />
+                        <span style={{
+                          fontFamily: t.suit === 'feng' || t.suit === 'jian' ? "'ZCOOL KuaiLe', 'Noto Sans SC', sans-serif" : '"Noto Sans SC", sans-serif',
+                          fontSize: '14px',
+                          fontWeight: (t.suit === 'feng' || t.suit === 'jian') ? '400' : '900',
+                          lineHeight: 1,
+                          color: t.suit === 'wan' ? 'var(--pop-red)'
+                            : t.suit === 'tiao' ? 'var(--pop-green)'
+                            : t.suit === 'tong' ? 'var(--pop-blue)'
+                            : 'var(--pop-ink)',
+                        }}>
+                          {t.value}
+                        </span>
+                        <span style={{
+                          fontSize: '7px',
+                          fontWeight: '900',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.08em',
+                          marginTop: '2px',
+                          color: t.suit === 'wan' ? 'var(--pop-red)'
+                            : t.suit === 'tiao' ? 'var(--pop-green)'
+                            : t.suit === 'tong' ? 'var(--pop-blue)'
+                            : 'var(--pop-ink)',
+                          opacity: 0.8,
+                        }}>
+                          {t.suit === 'wan' ? '万' : t.suit === 'tiao' ? '条' : t.suit === 'tong' ? '筒' : t.suit === 'feng' ? '风' : '箭'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {/* 文字说明 */}
+                  <div style={{
+                    fontSize: '10px',
+                    fontWeight: '700',
+                    lineHeight: 1.5,
+                    color: 'var(--pop-ink)',
+                    textAlign: 'center',
+                    opacity: 0.75,
+                  }}>
+                    {r.desc}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ height: '16px' }}></div>
+
+        <div className="help-panel">
+          <div className="help-title">游戏规则</div>
+          <div className="help-text">
+            <p style={{ marginBottom: '8px' }}>🧩 <b>目标：</b>每关选择麻将牌组成牌型，达成目标分数。</p>
+            <p style={{ marginBottom: '8px' }}>🎴 <b>出牌：</b>每回合可选 1-5 张牌打出，共 4 次出牌机会。</p>
+            <p style={{ marginBottom: '8px' }}>🔄 <b>弃牌：</b>选择要弃的牌点弃牌，可重抽新牌，共 3 次。</p>
+            <p style={{ marginBottom: '8px' }}>🃏 <b>小丑牌：</b>在商店购买，增加得分倍率或基础分。</p>
+            <p style={{ marginBottom: '8px' }}>❤️ <b>生命：</b>3 条生命，未达标扣一条，归零游戏结束。</p>
+            <p>💰 <b>金钱：</b>每关胜利获得金钱，用于商店消费。</p>
+          </div>
+        </div>
+
+        <div className="help-panel">
+          <div className="help-title">小丑品质</div>
+          <div className="help-text">
+            <p style={{ marginBottom: '4px' }}>⚪ 普通 - 基础效果，价格低</p>
+            <p style={{ marginBottom: '4px' }}>🟢 精良 - 中等效果，性价比高</p>
+            <p style={{ marginBottom: '4px' }}>🔵 稀有 - 强力效果，价格较高</p>
+            <p>🔴 传说 - 顶级效果，极其珍贵</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ========== 帮助弹窗（开始界面用）==========
+  function ConfirmModal({ title, message, confirmText = '确 定', cancelText = '取 消', onConfirm, onCancel }) {
+    return (
+      <div className="shop-overlay" onClick={onCancel}>
+        <div className="shop-container confirm-box" onClick={e => e.stopPropagation()}>
+          <div className="shop-header">
+            <div className="shop-title">{title}</div>
+          </div>
+          <div className="shop-content" style={{ textAlign: 'center', fontSize: '15px', lineHeight: 1.7 }}>
+            {message}
+          </div>
+          <div className="shop-footer" style={{ gap: '12px' }}>
+            <button className="pop-btn white" onClick={() => { window.SoundFX?.playClick(); onCancel(); }} style={{ flex: 1 }}>
+              {cancelText}
+            </button>
+            <button className="pop-btn red" onClick={() => { window.SoundFX?.playClick(); onConfirm(); }} style={{ flex: 1 }}>
+              {confirmText}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function HelpModal({ onClose }) {
+    return (
+      <div className="shop-overlay" onClick={onClose}>
+        <div className="shop-container" onClick={e => e.stopPropagation()}>
+          <div className="shop-header">
+            <div className="shop-title">游戏说明</div>
+            <button className="shop-close" onClick={() => { window.SoundFX?.playClick(); onClose(); }}>×</button>
+          </div>
+          <div className="shop-content">
+            <HelpView />
+          </div>
+          <div className="shop-footer">
+            <button className="pop-btn green" onClick={() => { window.SoundFX?.playClick(); onClose(); }} style={{ flex: 1 }}>
+              知 道 了
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ========== 开始界面用麻将牌组件 ==========
+  function StartTile({ value, suit, styleOverride = {} }) {
+    const suitColors = {
+      wan: 'var(--pop-red)',
+      tiao: 'var(--pop-green)',
+      tong: 'var(--pop-blue)',
+      feng: 'var(--pop-ink)',
+      jian: 'var(--pop-ink)',
+    };
+    const textColor = suitColors[suit] || 'var(--pop-ink)';
+
+    return (
+      <div style={{
+        width: '72px',
+        height: '96px',
+        background: 'var(--pop-surface)',
+        border: '5px solid var(--pop-ink)',
+        borderRadius: '10px',
+        boxShadow: '5px 5px 0 0 var(--pop-ink)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        overflow: 'hidden',
+        ...styleOverride,
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: 'radial-gradient(rgba(0,0,0,0.06) 1.5px, transparent 1.5px)',
+          backgroundSize: '8px 8px',
+          pointerEvents: 'none',
+        }} />
+        <span style={{
+          fontSize: (suit === 'feng' || suit === 'jian') ? '40px' : '36px',
+          fontWeight: (suit === 'feng' || suit === 'jian') ? '400' : '900',
+          lineHeight: 1,
+          color: textColor,
+          fontFamily: (suit === 'feng' || suit === 'jian') ? "'ZCOOL KuaiLe', 'Noto Sans SC', sans-serif" : '"Noto Sans SC", sans-serif',
+        }}>
+          {value}
+        </span>
+        <span style={{
+          fontSize: '10px',
+          fontWeight: '900',
+          textTransform: 'uppercase',
+          letterSpacing: '0.15em',
+          marginTop: '4px',
+          color: textColor,
+          opacity: 0.7,
+        }}>
+          {suit === 'jian' ? '箭' : suit === 'feng' ? '风' : suit === 'wan' ? '万' : suit === 'tiao' ? '条' : '筒'}
+        </span>
+      </div>
+    );
+  }
+
+  // ========== 辅助函数 ==========
+  function getRarityTextColor(rarity) {
+    const map = {
+      common: 'black',
+      uncommon: 'green',
+      rare: 'var(--pop-blue)',
+      legendary: 'var(--pop-red)',
+    };
+    return map[rarity] || 'black';
+  }
+
+  function getRarityBg(rarity) {
+    const map = {
+      common: 'white',
+      uncommon: 'var(--pop-green)',
+      rare: 'var(--pop-blue)',
+      legendary: 'var(--pop-red)',
+    };
+    return map[rarity] || 'white';
+  }
+
+  function getRarityFg(rarity) {
+    const map = {
+      common: 'black',
+      uncommon: 'black',
+      rare: 'white',
+      legendary: 'white',
+    };
+    return map[rarity] || 'black';
+  }
+
+  function rarityLabel(rarity) {
+    const map = {
+      common: '普通',
+      uncommon: '精良',
+      rare: '稀有',
+      legendary: '传说',
+    };
+    return map[rarity] || '普通';
+  }
+
+  // ========== 渲染 ==========
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(<App />);
+})();
+  </script>
+</body>
+</html>

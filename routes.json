@@ -1,0 +1,10 @@
+[
+  {
+    "path": "/",
+    "file": "index.html"
+  },
+  {
+    "path": "/game-share",
+    "file": "game-share.html"
+  }
+]
